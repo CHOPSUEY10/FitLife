@@ -1,13 +1,9 @@
 #FitLife
 
 A new Flutter project.
-Tentu, ini adalah draf `README.md` yang lengkap dan sistematis. File ini dirancang agar teman Anda bisa mengikuti langkah-langkah instalasi manual yang sudah kita lalui tanpa mengalami kendala "trial and error" yang sama.
 
----
 
-# 🚀 Panduan Instalasi Flutter & Manual Android SDK (Tanpa Android Studio)
-
-Dokumen ini berisi panduan langkah demi langkah untuk melakukan instalasi Flutter SDK dan Android Toolchain secara manual guna menghemat ruang penyimpanan.
+# Instalasi Flutter & Manual Android SDK (Tanpa Android Studio)
 
 ---
 
@@ -19,7 +15,7 @@ Dokumen ini berisi panduan langkah demi langkah untuk melakukan instalasi Flutte
 ---
 
 ## 🛠 Langkah 1: Instalasi Git & Java (JDK)
-Flutter membutuhkan Git untuk manajemen versi dan Java untuk membangun aplikasi Android.
+
 
 1.  **Instal Git:** Unduh dan instal [Git for Windows](https://git-scm.com/).
 2.  **Instal JDK 17 (LTS):** 
@@ -29,9 +25,9 @@ Flutter membutuhkan Git untuk manajemen versi dan Java untuk membangun aplikasi 
 ---
 
 ## 🐦 Langkah 2: Instalasi Flutter SDK
-1.  Buat folder di `C:\src\android_project`.
+1.  Buat folder di `C:\Android\src`.
 2.  Unduh [Flutter SDK](https://docs.flutter.dev/get-started/install/windows) dan ekstrak ke folder tersebut.
-3.  Pastikan file `flutter.bat` ada di dalam folder `C:\src\android_project\flutter\bin`.
+3.  Pastikan file `flutter.bat` ada di dalam folder `C:\Android\src\flutter\bin`.
 
 ---
 
@@ -61,7 +57,7 @@ Daftarkan path berikut agar perintah bisa dipanggil dari mana saja:
 
 **Tambahkan ke Path (System Variable):**
 *   `%JAVA_HOME%\bin`
-*   `C:\src\android_project\flutter\bin`
+*   `C:\Android\src\flutter\bin`
 *   `%ANDROID_HOME%\platform-tools`
 *   `%ANDROID_HOME%\cmdline-tools\latest\bin`
 
