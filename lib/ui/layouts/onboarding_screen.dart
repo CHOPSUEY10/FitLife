@@ -23,12 +23,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final Color bgColor = const Color(0xFF0A0518);
 
   void _nextPage() {
-    if (_currentPage < 4) {
+    if (_currentPage < 3) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
+        curve: Curves.easeIn,
       );
     } else {
+      // After onboarding is complete, they are already authenticated, so go to Dashboard
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const DashboardScreen()),
       );

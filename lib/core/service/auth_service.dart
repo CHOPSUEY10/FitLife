@@ -36,6 +36,41 @@ class AuthService {
     }
   }
 
+  /// Registers a user manually using Email and Password
+  Future<UserCredential?> registerWithEmailPassword(String email, String password) async {
+    try {
+      final credential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      
+      // Send the verification link to the newly registered email
+      if (credential.user != null && !credential.user!.emailVerified) {
+        await credential.user!.sendEmailVerification();
+      }
+      
+      return credential;
+    } on FirebaseAuthException catch (e) {
+      throw Exception('Registration error: ${e.message}');
+    } catch (e) {
+      throw Exception('Failed to register: $e');
+    }
+  }
+
+  /// Logs in a user manually using Email and Password
+  Future<UserCredential?> signInWithEmailPassword(String email, String password) async {
+    try {
+      return await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+    } on FirebaseAuthException catch (e) {
+      throw Exception('Login error: ${e.message}');
+    } catch (e) {
+      throw Exception('Failed to login: $e');
+    }
+  }
+
   /// Signs out from both Google and Firebase
   Future<void> signOut() async {
     try {

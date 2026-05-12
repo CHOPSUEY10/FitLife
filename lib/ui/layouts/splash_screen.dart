@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
+import '../../core/database/local_db_helper.dart';
 import 'onboarding_screen.dart';
+import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,12 +16,21 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Navigate to onboarding after 3 seconds
-    Timer(const Duration(seconds: 3), () {
+    _checkRouting();
+  }
+
+  void _checkRouting() async {
+    // Wait for the splash screen duration
+    await Future.delayed(const Duration(seconds: 3));
+    
+    if (mounted) {
+      // AuthWrapper handles the authenticated state and onboarding checks.
+      // If we are seeing the SplashScreen, the user is NOT authenticated.
+      // Therefore, always route them to LoginScreen to begin.
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
       );
-    });
+    }
   }
 
   @override
