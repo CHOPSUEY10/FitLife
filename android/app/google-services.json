@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "429554393680",
+    "project_id": "fitlife-abd3e",
+    "storage_bucket": "fitlife-abd3e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:429554393680:android:5338c6f4cb252269d26755",
+        "android_client_info": {
+          "package_name": "com.example.marathontracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHK_szf0z7kOSrd5J_AYdnDfvfLBB144E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
