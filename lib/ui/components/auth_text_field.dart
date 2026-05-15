@@ -5,12 +5,14 @@ class AuthTextField extends StatelessWidget {
   final String hint;
   final bool isPassword;
   final TextEditingController? controller;
+  final TextInputType keyboardType;
 
   const AuthTextField({
     super.key,
     required this.hint,
     this.isPassword = false,
     this.controller,
+    this.keyboardType = TextInputType.text,
   });
 
   @override
@@ -20,6 +22,7 @@ class AuthTextField extends StatelessWidget {
       child: TextField(
         controller: controller,
         obscureText: isPassword,
+        keyboardType: keyboardType,
         style: GoogleFonts.allerta(color: Colors.black87),
         decoration: InputDecoration(
           hintText: hint,

@@ -9,6 +9,7 @@ class UserModel {
   final String? jenisKelamin; // 'Pria' atau 'Wanita'
   final String? tujuan; // Tujuan gym (default, turun BB, naik massa)
   final String? waktuLuang; // Pilihan waktu luang (10-15m, dsb)
+  final bool? isVerified; // Status verifikasi akun
 
   UserModel({
     this.id,
@@ -19,6 +20,7 @@ class UserModel {
     this.jenisKelamin,
     this.tujuan,
     this.waktuLuang,
+    this.isVerified = false,
   });
 
   // Convert a UserModel into a Map for SQLite.
@@ -32,6 +34,7 @@ class UserModel {
       'jenisKelamin': jenisKelamin,
       'tujuan': tujuan,
       'waktuLuang': waktuLuang,
+      'isVerified': isVerified == true ? 1 : 0, // SQLite doesn't have a separate boolean storage class
     };
   }
 
@@ -46,6 +49,7 @@ class UserModel {
       jenisKelamin: map['jenisKelamin'],
       tujuan: map['tujuan'],
       waktuLuang: map['waktuLuang'],
+      isVerified: map['isVerified'] == 1,
     );
   }
 }

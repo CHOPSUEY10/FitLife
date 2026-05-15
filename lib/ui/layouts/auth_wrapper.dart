@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/database/local_db_helper.dart';
-import 'home_screen.dart'; // Placeholder for DashboardScreen
+import '../../core/service/phone_prefs_service.dart';
+import 'home_screen.dart';
 import 'splash_screen.dart';
-import 'email_verification_screen.dart';
+import 'otp_verification_screen.dart';
 import 'onboarding_screen.dart';
-import 'dashboard_screen.dart'; // Use the real DashboardScreen
+import 'dashboard_screen.dart';
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
@@ -15,46 +16,64 @@ class AuthWrapper extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
+        // ── Loading ──────────────────────────────────────────────────────────
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            backgroundColor: Color(0xFF0A0518),
-            body: Center(child: CircularProgressIndicator(color: Color(0xFFBEFF5D))),
-          );
+          return _loadingScaffold();
         }
 
+        // ── Signed in ────────────────────────────────────────────────────────
         if (snapshot.hasData && snapshot.data != null) {
-          final user = snapshot.data!;
-          
-          // Force verification if they signed up with email/password
-          // Google Sign-In automatically verifies emails, so it will pass this.
-          if (!user.emailVerified) {
-            return const EmailVerificationScreen();
-          }
+          return FutureBuilder<bool>(
+            future: PhonePrefsService.isOtpVerified(),
+            builder: (context, otpSnapshot) {
+              if (otpSnapshot.connectionState == ConnectionState.waiting) {
+                return _loadingScaffold();
+              }
 
-          // Email is verified, check if they completed onboarding
-          return FutureBuilder(
-            future: LocalDBHelper.instance.getUserMetrics(),
-            builder: (context, dbSnapshot) {
-              if (dbSnapshot.connectionState == ConnectionState.waiting) {
-                return const Scaffold(
-                  backgroundColor: Color(0xFF0A0518),
-                  body: Center(child: CircularProgressIndicator(color: Color(0xFFBEFF5D))),
+              final otpVerified = otpSnapshot.data ?? false;
+
+              // OTP not yet completed → show OTP screen with saved phone
+              if (!otpVerified) {
+                return FutureBuilder<String?>(
+                  future: PhonePrefsService.getPhone(),
+                  builder: (context, phoneSnapshot) {
+                    if (phoneSnapshot.connectionState == ConnectionState.waiting) {
+                      return _loadingScaffold();
+                    }
+                    final phone = phoneSnapshot.data ?? '';
+                    return OtpVerificationScreen(phoneNumber: phone);
+                  },
                 );
               }
-              if (dbSnapshot.data != null) {
-                // Completed onboarding
-                return const DashboardScreen();
-              } else {
-                // Needs onboarding
-                return const OnboardingScreen();
-              }
+
+              // OTP verified → check if onboarding is done
+              return FutureBuilder(
+                future: LocalDBHelper.instance.getUserMetrics(),
+                builder: (context, dbSnapshot) {
+                  if (dbSnapshot.connectionState == ConnectionState.waiting) {
+                    return _loadingScaffold();
+                  }
+                  if (dbSnapshot.data != null) {
+                    return const DashboardScreen();
+                  } else {
+                    return const OnboardingScreen();
+                  }
+                },
+              );
             },
           );
         }
 
-        // Not logged in, route to Splash/Login
+        // ── Not signed in ────────────────────────────────────────────────────
         return const SplashScreen();
       },
+    );
+  }
+
+  Widget _loadingScaffold() {
+    return const Scaffold(
+      backgroundColor: Color(0xFF0A0518),
+      body: Center(child: CircularProgressIndicator(color: Color(0xFFBEFF5D))),
     );
   }
 }

@@ -14,3 +14,12 @@ class LocationFailure extends Failure {
 class DatabaseFailure extends Failure {
   DatabaseFailure(super.message);
 }
+
+// Khusus untuk error OTP
+class InvalidOtpFailure extends Failure {
+  InvalidOtpFailure([super.message = "Invalid OTP"]);
+}
+
+class ExpiredOtpFailure extends Failure {
+  ExpiredOtpFailure([super.message = "Expired OTP"]);
+}
