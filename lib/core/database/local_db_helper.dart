@@ -20,8 +20,9 @@ class LocalDBHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createDB,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -35,9 +36,16 @@ class LocalDBHelper {
         beratBadan REAL,
         jenisKelamin TEXT,
         tujuan TEXT,
-        waktuLuang TEXT
+        waktuLuang TEXT,
+        isVerified INTEGER
       )
     ''');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE users ADD COLUMN isVerified INTEGER DEFAULT 0');
+    }
   }
 
   Future<void> saveUserMetrics(UserModel user) async {

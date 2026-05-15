@@ -25,6 +25,7 @@ class OnboardingLogic {
         beratBadan: beratBadan ?? existingUser?.beratBadan,
         jenisKelamin: jenisKelamin ?? existingUser?.jenisKelamin,
         waktuLuang: waktuLuang ?? existingUser?.waktuLuang,
+        isVerified: existingUser?.isVerified ?? true, // Users in onboarding are already OTP-verified
       );
 
       // Save to SQLite
