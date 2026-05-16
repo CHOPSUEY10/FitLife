@@ -23,43 +23,17 @@ class AuthWrapper extends StatelessWidget {
 
         // ── Signed in ────────────────────────────────────────────────────────
         if (snapshot.hasData && snapshot.data != null) {
-          return FutureBuilder<bool>(
-            future: PhonePrefsService.isOtpVerified(),
-            builder: (context, otpSnapshot) {
-              if (otpSnapshot.connectionState == ConnectionState.waiting) {
+          return FutureBuilder(
+            future: LocalDBHelper.instance.getUserMetrics(),
+            builder: (context, dbSnapshot) {
+              if (dbSnapshot.connectionState == ConnectionState.waiting) {
                 return _loadingScaffold();
               }
-
-              final otpVerified = otpSnapshot.data ?? false;
-
-              // OTP not yet completed → show OTP screen with saved phone
-              if (!otpVerified) {
-                return FutureBuilder<String?>(
-                  future: PhonePrefsService.getPhone(),
-                  builder: (context, phoneSnapshot) {
-                    if (phoneSnapshot.connectionState == ConnectionState.waiting) {
-                      return _loadingScaffold();
-                    }
-                    final phone = phoneSnapshot.data ?? '';
-                    return OtpVerificationScreen(phoneNumber: phone);
-                  },
-                );
+              if (dbSnapshot.data != null && dbSnapshot.data!.tujuan != null) {
+                return const DashboardScreen();
+              } else {
+                return const OnboardingScreen();
               }
-
-              // OTP verified → check if onboarding is done
-              return FutureBuilder(
-                future: LocalDBHelper.instance.getUserMetrics(),
-                builder: (context, dbSnapshot) {
-                  if (dbSnapshot.connectionState == ConnectionState.waiting) {
-                    return _loadingScaffold();
-                  }
-                  if (dbSnapshot.data != null) {
-                    return const DashboardScreen();
-                  } else {
-                    return const OnboardingScreen();
-                  }
-                },
-              );
             },
           );
         }
