@@ -7,6 +7,9 @@ import '../components/bottom_nav_bar.dart';
 import 'add_activity_screen.dart';
 import 'abs_workout_screen.dart';
 import 'chest_workout_screen.dart';
+import 'activity_list_screen.dart';
+import 'settings_screen.dart';
+import 'jogging_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -44,7 +47,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Header Row
+                    // Header
                     Row(
                       children: [
                         CircleAvatar(
@@ -70,7 +73,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Real-time Date and Time
+                    // Date Time
                     AnimatedBuilder(
                       animation: _controller,
                       builder: (context, child) {
@@ -86,7 +89,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Stats and Map Row
+                    // Stats + Map
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -134,9 +137,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Expanded(
+                        const Expanded(
                           flex: 1,
-                          child: const SizedBox(
+                          child: SizedBox(
                             height: 220,
                             child: MapPlaceholderCard(),
                           ),
@@ -146,7 +149,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                     const SizedBox(height: 24),
 
-                    // Daily Plan Section
+                    // Daily Plan
                     const Text(
                       'Daily Plan',
                       style: TextStyle(
@@ -166,6 +169,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           _buildFilterChip('Core'),
                           _buildFilterChip('Upper Body'),
                           _buildFilterChip('Lower Body'),
+                          _buildFilterChip('Cardio'),
                         ],
                       ),
                     ),
@@ -180,9 +184,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (_) => const AbsWorkoutScreen(),
-                          ),
+                          MaterialPageRoute(builder: (_) => const AbsWorkoutScreen()),
                         );
                       },
                     ),
@@ -193,23 +195,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (_) => const ChestWorkoutScreen(),
-                          ),
+                          MaterialPageRoute(builder: (_) => const ChestWorkoutScreen()),
                         );
                       },
                     ),
+                    WorkoutCard(
+                      title: 'Jogging\n/ Lari',
+                      subtitle: 'Track rute & kalori real-time',
+                      imagePath: 'assets/illustration/plank.webp',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const JoggingScreen()),
+                        );
+                      },
+                    ),
+
                     const SizedBox(height: 24),
                   ],
                 ),
               ),
             ),
 
-            // Bottom Navigation
+            // Bottom Nav
             CustomBottomNavBar(
               selectedIndex: _bottomNavIndex,
               onItemTapped: (index) {
-                if (index == 1) {
+                if (index == 0) {
+                  setState(() => _bottomNavIndex = 0);
+                } else if (index == 1) {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -222,8 +236,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                   );
-                } else {
-                  setState(() => _bottomNavIndex = index);
+                } else if (index == 2) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ActivityListScreen(
+                        initialNavIndex: 2,
+                        onNavTapped: (i) {
+                          Navigator.pop(context);
+                          setState(() => _bottomNavIndex = i);
+                        },
+                      ),
+                    ),
+                  );
+                } else if (index == 3) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SettingsScreen(
+                        initialNavIndex: 3,
+                        onNavTapped: (i) {
+                          Navigator.pop(context);
+                          setState(() => _bottomNavIndex = i);
+                        },
+                      ),
+                    ),
+                  );
                 }
               },
             ),
