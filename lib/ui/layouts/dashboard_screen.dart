@@ -4,6 +4,9 @@ import '../components/stats_card.dart';
 import '../components/map_placeholder_card.dart';
 import '../components/workout_card.dart';
 import '../components/bottom_nav_bar.dart';
+import 'add_activity_screen.dart';
+import 'abs_workout_screen.dart';
+import 'chest_workout_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -31,7 +34,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0C1B), // Dark background matching Figma
+      backgroundColor: const Color(0xFF0F0C1B),
       body: SafeArea(
         child: Column(
           children: [
@@ -56,7 +59,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             return Text(
                               'Hi ${_controller.username}',
                               style: const TextStyle(
-                                color: Color(0xFFC6FF00), // Lime Green
+                                color: Color(0xFFC6FF00),
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -66,7 +69,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Real-time Date and Time
                     AnimatedBuilder(
                       animation: _controller,
@@ -82,17 +85,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Stats and Map Row
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Left Column (Steps & Calories)
                         Expanded(
                           flex: 1,
                           child: Column(
                             children: [
-                              // Steps Card
                               StatsCard(
                                 title: 'Steps',
                                 value: '999/2000',
@@ -111,7 +112,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     ),
                                     Container(
                                       height: 8,
-                                      width: 40, // 50% mock progress
+                                      width: 40,
                                       decoration: BoxDecoration(
                                         color: Colors.black,
                                         borderRadius: BorderRadius.circular(4),
@@ -121,7 +122,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ),
                               ),
                               const SizedBox(height: 12),
-                              // Calories Card
                               StatsCard(
                                 title: 'Kalori Terbakar',
                                 value: '645 / 1000\nkkal',
@@ -134,19 +134,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        // Right Column (Map Placeholder)
                         Expanded(
                           flex: 1,
                           child: const SizedBox(
-                            height: 220, // Align height roughly with left column
+                            height: 220,
                             child: MapPlaceholderCard(),
                           ),
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // Daily Plan Section
                     const Text(
                       'Daily Plan',
@@ -157,7 +156,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    
+
                     // Filter Chips
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
@@ -170,35 +169,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
-                    // Workout Cards List
+
+                    // Workout Cards
                     WorkoutCard(
                       title: 'Abs\nWorkout',
                       subtitle: '10x Plank Crunches',
                       imagePath: 'assets/illustration/plank.webp',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AbsWorkoutScreen(),
+                          ),
+                        );
+                      },
                     ),
                     WorkoutCard(
                       title: 'Chest\nWorkout',
                       subtitle: 'Beginner Push Ups\nDiamond Push Up',
                       imagePath: 'assets/illustration/pushup.webp',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ChestWorkoutScreen(),
+                          ),
+                        );
+                      },
                     ),
-                    const SizedBox(height: 24), // Bottom padding
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
             ),
-            
+
             // Bottom Navigation
             CustomBottomNavBar(
               selectedIndex: _bottomNavIndex,
               onItemTapped: (index) {
-                setState(() {
-                  _bottomNavIndex = index;
-                });
+                if (index == 1) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AddActivityScreen(
+                        initialNavIndex: 1,
+                        onNavTapped: (i) {
+                          Navigator.pop(context);
+                          if (i != 1) setState(() => _bottomNavIndex = i);
+                        },
+                      ),
+                    ),
+                  );
+                } else {
+                  setState(() => _bottomNavIndex = index);
+                }
               },
             ),
           ],
