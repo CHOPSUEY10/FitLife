@@ -1,18 +1,49 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../../core/database/local_db_helper.dart';
+import '../../../core/models/aktifitas_harian_model.dart';
+import '../../workout/logic/workout_logic.dart';
+import '../../step_tracker/logic/step_tracker_logic.dart';
 
 class DashboardController extends ChangeNotifier {
   late Timer _timer;
   DateTime _currentDateTime = DateTime.now();
   String _username = 'User';
+  double _todayCalories = 0.0;
+  List<AktifitasHarianModel> _todayWorkouts = [];
+  
+  final StepTrackerLogic _stepTracker = StepTrackerLogic();
+  int _currentSteps = 0;
+  StreamSubscription<int>? _stepSubscription;
 
   DateTime get currentDateTime => _currentDateTime;
   String get username => _username;
+  double get todayCalories => _todayCalories;
+  List<AktifitasHarianModel> get todayWorkouts => _todayWorkouts;
+  int get currentSteps => _currentSteps;
 
   DashboardController() {
     _startTimer();
     _fetchUsername();
+    fetchTodayCalories();
+    fetchTodayWorkouts();
+    _initStepTracker();
+  }
+
+  void _initStepTracker() {
+    _stepTracker.startTracking();
+    _stepSubscription = _stepTracker.stepStream.listen((steps) {
+      _currentSteps = steps;
+      notifyListeners();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    _stepSubscription?.cancel();
+    _stepTracker.stopTracking();
+    super.dispose();
   }
 
   Future<void> _fetchUsername() async {
@@ -21,6 +52,20 @@ class DashboardController extends ChangeNotifier {
       _username = userMetrics.nama!;
       notifyListeners();
     }
+  }
+
+  /// Fetch today's total calories from the database and notify listeners
+  Future<void> fetchTodayCalories() async {
+    final logic = WorkoutLogic();
+    _todayCalories = await logic.getTodayCalories();
+    notifyListeners();
+  }
+
+  /// Fetch today's assigned workouts from the database
+  Future<void> fetchTodayWorkouts() async {
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    _todayWorkouts = await LocalDBHelper.instance.getAktifitasHarianByDate(today);
+    notifyListeners();
   }
 
   void _startTimer() {
@@ -65,9 +110,4 @@ class DashboardController extends ChangeNotifier {
     return '$dayName $day $monthName - $hour:$minute';
   }
 
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
-  }
 }

@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import '../../features/workout/logic/workout_logic.dart';
+import '../../features/marathon/logic/location_logic.dart';
 
 class JoggingScreen extends StatefulWidget {
   const JoggingScreen({Key? key}) : super(key: key);
@@ -31,9 +32,11 @@ class _JoggingScreenState extends State<JoggingScreen> {
   double _calories = 0;
   double _avgPace = 0;
 
-  StreamSubscription<Position>? _positionStream;
+  final LocationLogic _locationLogic = LocationLogic();
+
+  StreamSubscription<LatLng>? _positionStream;
   Timer? _durationTimer;
-  Position? _lastPosition;
+  LatLng? _lastPosition;
 
   @override
   void initState() {
@@ -49,26 +52,19 @@ class _JoggingScreenState extends State<JoggingScreen> {
   }
 
   Future<void> _checkPermission() async {
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-    if (permission == LocationPermission.whileInUse ||
-        permission == LocationPermission.always) {
+    final hasPermission = await _locationLogic.checkAndRequestPermission();
+    if (hasPermission) {
       setState(() => _hasPermission = true);
       await _initCurrentLocation();
     }
   }
 
   Future<void> _initCurrentLocation() async {
-    try {
-      final pos = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-      final latLng = LatLng(pos.latitude, pos.longitude);
+    final latLng = await _locationLogic.getCurrentLocation();
+    if (latLng != null) {
       setState(() => _currentPosition = latLng);
       _mapController.move(latLng, 16);
-    } catch (_) {}
+    }
   }
 
   void _startRun() {
@@ -81,35 +77,23 @@ class _JoggingScreenState extends State<JoggingScreen> {
       setState(() => _durationSeconds++);
     });
 
-    const locationSettings = LocationSettings(
-      accuracy: LocationAccuracy.high,
-      distanceFilter: 5,
-    );
-
-    _positionStream =
-        Geolocator.getPositionStream(locationSettings: locationSettings)
-            .listen((Position pos) {
-          final newPoint = LatLng(pos.latitude, pos.longitude);
-          setState(() {
-            _currentPosition = newPoint;
-            _routePoints.add(newPoint);
-            if (_lastPosition != null) {
-              final dist = Geolocator.distanceBetween(
-                _lastPosition!.latitude,
-                _lastPosition!.longitude,
-                pos.latitude,
-                pos.longitude,
-              );
-              _distanceMeters += dist;
-              _calories = _distanceMeters / 1000 * 60;
-            }
-            if (_distanceMeters > 0 && _durationSeconds > 0) {
-              _avgPace = (_durationSeconds / 60) / (_distanceMeters / 1000);
-            }
-            _lastPosition = pos;
-          });
-          _mapController.move(newPoint, _mapController.camera.zoom);
-        });
+    _positionStream = _locationLogic.getLocationStream(distanceFilter: 5)
+        .listen((LatLng newPoint) {
+      setState(() {
+        _currentPosition = newPoint;
+        _routePoints.add(newPoint);
+        if (_lastPosition != null) {
+          final dist = _locationLogic.calculateDistance(_lastPosition!, newPoint);
+          _distanceMeters += dist;
+          _calories = _distanceMeters / 1000 * 60;
+        }
+        if (_distanceMeters > 0 && _durationSeconds > 0) {
+          _avgPace = (_durationSeconds / 60) / (_distanceMeters / 1000);
+        }
+        _lastPosition = newPoint;
+      });
+      _mapController.move(newPoint, _mapController.camera.zoom);
+    });
   }
 
   void _pauseRun() {
@@ -126,13 +110,32 @@ class _JoggingScreenState extends State<JoggingScreen> {
     });
   }
 
-  void _stopRun() {
+  void _stopRun() async {
     _positionStream?.cancel();
     _durationTimer?.cancel();
     setState(() {
       _isRunning = false;
       _isPaused = false;
     });
+
+    // Save workout record to DB
+    final durationMinutes = (_durationSeconds / 60).ceil();
+    final paceInt = _avgPace > 0 ? _avgPace.round() : null;
+    final distanceKm = _distanceMeters / 1000;
+
+    final logic = WorkoutLogic();
+    final savedCal = await logic.saveWorkoutRecord(
+      idJenisAktifitas: 'jogging',
+      durasiLatihan: durationMinutes > 0 ? durationMinutes : 1,
+      pace: paceInt,
+      jarakTempuh: distanceKm,
+    );
+    // Update displayed calories with DB-computed value
+    if (savedCal > 0) {
+      setState(() => _calories = savedCal);
+    }
+
+    if (!mounted) return;
     _showResultDialog();
   }
 

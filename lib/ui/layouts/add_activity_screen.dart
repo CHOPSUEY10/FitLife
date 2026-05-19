@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/database/local_db_helper.dart';
+import '../../core/enums/schedule_enum.dart';
+import '../../core/models/aktifitas_harian_model.dart';
 import '../components/bottom_nav_bar.dart';
 
 class AddActivityScreen extends StatefulWidget {
@@ -20,29 +22,25 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
   int _bottomNavIndex = 1;
   String _username = 'User';
 
-  String? _selectedSchedule;
-  final List<String?> _activities = [null, null, null];
-  int _selectedDuration = 1;
-  final TextEditingController _customDurationController = TextEditingController();
-
-  final List<String> _scheduleOptions = [
-    'Pagi (06:00 - 09:00)',
-    'Siang (11:00 - 13:00)',
-    'Sore (15:00 - 17:00)',
-    'Malam (19:00 - 21:00)',
-  ];
-
-  final List<String> _activityOptions = [
-    'Lari', 'Bersepeda', 'Renang', 'Push Up',
-    'Sit Up', 'Plank', 'Yoga', 'Zumba',
-    'Angkat Beban', 'Jalan Kaki',
-  ];
+  JadwalAktivitas? _selectedSchedule;
+  String? _selectedMuscleGroup;
+  List<String> _muscleGroupOptions = [];
 
   @override
   void initState() {
     super.initState();
     _bottomNavIndex = widget.initialNavIndex;
     _fetchUsername();
+    _fetchMuscleGroups();
+  }
+
+  Future<void> _fetchMuscleGroups() async {
+    final groups = await LocalDBHelper.instance.getWorkoutCategories();
+    if (mounted) {
+      setState(() {
+        _muscleGroupOptions = groups;
+      });
+    }
   }
 
   Future<void> _fetchUsername() async {
@@ -54,11 +52,24 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
 
   @override
   void dispose() {
-    _customDurationController.dispose();
     super.dispose();
   }
 
+  List<JadwalAktivitas> _getAvailableSchedules() {
+    final hour = DateTime.now().hour;
+    return JadwalAktivitas.values.where((opt) {
+      switch (opt) {
+        case JadwalAktivitas.pagi: return hour < 9;
+        case JadwalAktivitas.siang: return hour < 13;
+        case JadwalAktivitas.sore: return hour < 17;
+        case JadwalAktivitas.malam: return hour < 21;
+      }
+    }).toList();
+  }
+
   void _showSchedulePicker() {
+    final availableSchedules = _getAvailableSchedules();
+    
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF1A1630),
@@ -75,20 +86,26 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
               decoration: BoxDecoration(color: Colors.grey[600], borderRadius: BorderRadius.circular(2)),
             ),
           ),
-          ..._scheduleOptions.map((opt) => ListTile(
-            title: Text(opt, style: const TextStyle(color: Colors.white)),
-            trailing: _selectedSchedule == opt ? const Icon(Icons.check, color: Color(0xFFC6FF00)) : null,
-            onTap: () {
-              setState(() => _selectedSchedule = opt);
-              Navigator.pop(ctx);
-            },
-          )),
+          if (availableSchedules.isEmpty)
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Center(child: Text('Tidak ada jadwal tersedia hari ini.', style: TextStyle(color: Colors.white54))),
+            )
+          else
+            ...availableSchedules.map((opt) => ListTile(
+              title: Text(opt.label, style: const TextStyle(color: Colors.white)),
+              trailing: _selectedSchedule == opt ? const Icon(Icons.check, color: Color(0xFFC6FF00)) : null,
+              onTap: () {
+                setState(() => _selectedSchedule = opt);
+                Navigator.pop(ctx);
+              },
+            )),
         ],
       ),
     );
   }
 
-  void _showActivityPicker(int index) {
+  void _showMuscleGroupPicker() {
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF1A1630),
@@ -105,11 +122,11 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
               decoration: BoxDecoration(color: Colors.grey[600], borderRadius: BorderRadius.circular(2)),
             ),
           ),
-          ..._activityOptions.map((opt) => ListTile(
+          ..._muscleGroupOptions.map((opt) => ListTile(
             title: Text(opt, style: const TextStyle(color: Colors.white)),
-            trailing: _activities[index] == opt ? const Icon(Icons.check, color: Color(0xFFC6FF00)) : null,
+            trailing: _selectedMuscleGroup == opt ? const Icon(Icons.check, color: Color(0xFFC6FF00)) : null,
             onTap: () {
-              setState(() => _activities[index] = opt);
+              setState(() => _selectedMuscleGroup = opt);
               Navigator.pop(ctx);
             },
           )),
@@ -118,69 +135,84 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
     );
   }
 
-  void _showAllActivities() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF1A1630),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40, height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(color: Colors.grey[600], borderRadius: BorderRadius.circular(2)),
-              ),
-            ),
-            const Text('Semua Aktivitas', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            Expanded(
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, childAspectRatio: 3, crossAxisSpacing: 8, mainAxisSpacing: 8,
-                ),
-                itemCount: _activityOptions.length,
-                itemBuilder: (ctx, i) => GestureDetector(
-                  onTap: () {
-                    int slot = _activities.indexWhere((a) => a == null);
-                    if (slot != -1) setState(() => _activities[slot] = _activityOptions[i]);
-                    Navigator.pop(ctx);
-                  },
-                  child: Container(
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(color: const Color(0xFF2A2545), borderRadius: BorderRadius.circular(10)),
-                    child: Text(_activityOptions[i], style: const TextStyle(color: Colors.white, fontSize: 13)),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _onSave() {
+  Future<void> _onSave() async {
     if (_selectedSchedule == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Pilih jadwal terlebih dahulu'), backgroundColor: Colors.red),
       );
       return;
     }
-    if (!_activities.any((a) => a != null)) {
+    if (_selectedMuscleGroup == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pilih minimal satu aktivitas'), backgroundColor: Colors.red),
+        const SnackBar(content: Text('Pilih aktivitas terlebih dahulu'), backgroundColor: Colors.red),
       );
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Aktivitas berhasil disimpan!'), backgroundColor: Color(0xFFC6FF00)),
-    );
+
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    
+    // Check if an activity already exists for today
+    final existingActivities = await LocalDBHelper.instance.getAktifitasHarianByDate(today);
+
+    if (existingActivities.isNotEmpty) {
+      if (!mounted) return;
+      final existingActivity = existingActivities.first;
+      
+      // Show confirmation dialog to replace or delete
+      final bool? shouldReplace = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: const Color(0xFF1A1630),
+          title: const Text('Jadwal Sudah Ada', style: TextStyle(color: Colors.white)),
+          content: Text(
+            'Anda sudah menjadwalkan ${existingActivity.idJenisAktifitas} untuk hari ini. Apakah Anda ingin menggantinya?',
+            style: const TextStyle(color: Colors.white70),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFC6FF00), foregroundColor: Colors.black),
+              child: const Text('Ganti Aktivitas'),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldReplace != true) return; // User cancelled
+
+      final model = AktifitasHarianModel(
+        idAktifitasHarian: existingActivity.idAktifitasHarian,
+        tanggal: today,
+        idJenisAktifitas: _selectedMuscleGroup!,
+        totalKalori: existingActivity.totalKalori, // keep existing burned calories if any
+        durasiLatihan: existingActivity.durasiLatihan,
+        pace: existingActivity.pace,
+        jarakTempuh: existingActivity.jarakTempuh,
+      );
+      await LocalDBHelper.instance.updateAktifitasHarian(model);
+    } else {
+      final model = AktifitasHarianModel(
+        tanggal: today,
+        idJenisAktifitas: _selectedMuscleGroup!,
+        totalKalori: 0,
+        durasiLatihan: 0,
+      );
+      await LocalDBHelper.instance.insertAktifitasHarian(model);
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Aktivitas berhasil disimpan!'), backgroundColor: Color(0xFFC6FF00)),
+      );
+      setState(() {
+        _selectedSchedule = null;
+        _selectedMuscleGroup = null;
+      });
+    }
   }
 
   @override
@@ -225,63 +257,14 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
                           // Pilih Jadwal
                           const Text('Pilih Jadwal', style: TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w600)),
                           const SizedBox(height: 6),
-                          _buildDropdownField(value: _selectedSchedule, hint: '', onTap: _showSchedulePicker),
+                          _buildDropdownField(value: _selectedSchedule?.label, hint: '', onTap: _showSchedulePicker),
                           const SizedBox(height: 16),
 
                           // Pilih Aktivitas
                           const Text('Pilih Aktivitas', style: TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w600)),
                           const SizedBox(height: 6),
-                          ...List.generate(3, (i) => Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: _buildActivityField(i),
-                          )),
-
-                          // Lihat Semuanya
-                          Center(
-                            child: GestureDetector(
-                              onTap: _showAllActivities,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                                decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(20)),
-                                child: const Text('Lihat Semuanya', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Durasi
-                          const Text('Durasi', style: TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w600)),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              _buildDurationChip('30 Menit', 0),
-                              const SizedBox(width: 8),
-                              _buildDurationChip('1 Jam', 1),
-                              const SizedBox(width: 8),
-                              _buildDurationChip('2 Jam', 2),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-
-                          // Atur Sendiri
-                          Container(
-                            height: 40,
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
-                            child: TextField(
-                              controller: _customDurationController,
-                              keyboardType: TextInputType.number,
-                              style: const TextStyle(fontSize: 13, color: Colors.black),
-                              decoration: const InputDecoration(
-                                hintText: 'Atur Sendiri',
-                                hintStyle: TextStyle(color: Colors.grey, fontSize: 13),
-                                border: InputBorder.none,
-                                isDense: true,
-                              ),
-                              onTap: () => setState(() => _selectedDuration = 3),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
+                          _buildDropdownField(value: _selectedMuscleGroup, hint: 'Pilih Bagian Otot', onTap: _showMuscleGroupPicker),
+                          const SizedBox(height: 24),
 
                           // Simpan
                           SizedBox(
@@ -341,45 +324,4 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
     );
   }
 
-  Widget _buildActivityField(int index) {
-    return Container(
-      height: 44,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
-      child: Row(
-        children: [
-          Expanded(child: Text(_activities[index] ?? '', style: const TextStyle(fontSize: 13, color: Colors.black))),
-          GestureDetector(
-            onTap: () => _showActivityPicker(index),
-            child: Container(
-              width: 26, height: 26,
-              decoration: const BoxDecoration(color: Color(0xFF2DB55D), shape: BoxShape.circle),
-              child: const Icon(Icons.add, color: Colors.white, size: 16),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDurationChip(String label, int index) {
-    final bool isSelected = _selectedDuration == index;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedDuration = index;
-          _customDurationController.clear();
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.black : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: isSelected ? Colors.black : Colors.black54, width: 1.5),
-        ),
-        child: Text(label, style: TextStyle(color: isSelected ? Colors.white : Colors.black, fontSize: 13, fontWeight: FontWeight.w600)),
-      ),
-    );
-  }
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../features/workout/logic/workout_logic.dart';
+
 
 class ChestWorkoutScreen extends StatefulWidget {
   const ChestWorkoutScreen({Key? key}) : super(key: key);
@@ -99,8 +101,16 @@ class _ChestWorkoutScreenState extends State<ChestWorkoutScreen>
       });
       _runRestCountdown();
     } else {
-      _showFinishDialog();
+      _onWorkoutFinished();
     }
+  }
+
+  void _onWorkoutFinished() async {
+    final totalMin = _exercises.fold<int>(0, (s, e) => s + (e['duration'] as int)) ~/ 60 + 1;
+    final logic = WorkoutLogic();
+    final cal = await logic.saveWorkoutRecord(idJenisAktifitas: 'chest_workout', durasiLatihan: totalMin);
+    if (!mounted) return;
+    _showFinishDialog(cal, totalMin);
   }
 
   void _runRestCountdown() async {
@@ -118,7 +128,7 @@ class _ChestWorkoutScreenState extends State<ChestWorkoutScreen>
     _progressController.reset();
   }
 
-  void _showFinishDialog() {
+  void _showFinishDialog(double cal, int dur) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -157,11 +167,11 @@ class _ChestWorkoutScreenState extends State<ChestWorkoutScreen>
               const SizedBox(height: 24),
               Row(
                 children: [
-                  _buildStatBadge('5', 'Gerakan'),
+                  _buildStatBadge('${_exercises.length}', 'Gerakan'),
                   const SizedBox(width: 10),
-                  _buildStatBadge('~210', 'Kalori'),
+                  _buildStatBadge('~${cal.toInt()}', 'Kalori'),
                   const SizedBox(width: 10),
-                  _buildStatBadge('18m', 'Durasi'),
+                  _buildStatBadge('${dur}m', 'Durasi'),
                 ],
               ),
               const SizedBox(height: 24),

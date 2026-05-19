@@ -1,7 +1,35 @@
 import 'package:flutter/material.dart';
+import '../../features/marathon/data/marathon_repository.dart';
 
-class MapPlaceholderCard extends StatelessWidget {
+class MapPlaceholderCard extends StatefulWidget {
   const MapPlaceholderCard({Key? key}) : super(key: key);
+
+  @override
+  State<MapPlaceholderCard> createState() => _MapPlaceholderCardState();
+}
+
+class _MapPlaceholderCardState extends State<MapPlaceholderCard> {
+  String _durasi = '0m';
+  String _jarak = '0.0 KM';
+  String _pace = '0 m/km';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCardioData();
+  }
+
+  Future<void> _fetchCardioData() async {
+    final repo = MarathonRepository();
+    final cardio = await repo.getCardioData();
+    if (cardio != null && mounted) {
+      setState(() {
+        _durasi = '${cardio.durasi ?? 0}m';
+        _jarak = '${cardio.jarakTempuh ?? 0.0} KM';
+        _pace = '${cardio.pace ?? 0} m/km';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,11 +101,11 @@ class MapPlaceholderCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow('Durasi', '15m'),
+                _buildInfoRow('Durasi', _durasi),
                 const SizedBox(height: 4),
-                _buildInfoRow('Jarak', '5.4 KM'),
+                _buildInfoRow('Jarak', _jarak),
                 const SizedBox(height: 4),
-                _buildInfoRow('Pace', '5 m/km'),
+                _buildInfoRow('Pace', _pace),
               ],
             ),
           ),
