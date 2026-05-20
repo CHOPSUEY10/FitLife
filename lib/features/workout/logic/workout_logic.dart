@@ -42,27 +42,60 @@ class WorkoutLogic {
     final user = await _dbHelper.getUserMetrics();
     final double weightKg = user?.beratBadan ?? 70.0; // default 70kg if not set
 
-    // 2. Get MET value for this activity type (now returns a Map from one of the 5 tables)
-    final jenisAktifitas = await _dbHelper.getWorkoutActivityById(idJenisAktifitas);
-    if (jenisAktifitas == null) return 0.0;
+    // 2. Get MET value and standard category name
+    double met = 4.0;
+    String dbCategory = idJenisAktifitas;
+
+    final lowerId = idJenisAktifitas.toLowerCase();
+    if (lowerId.contains('abs')) { met = 4.0; dbCategory = 'Abs Workout'; }
+    else if (lowerId.contains('chest')) { met = 3.8; dbCategory = 'Chest Workout'; }
+    else if (lowerId.contains('arm')) { met = 3.5; dbCategory = 'Arm Workout'; }
+    else if (lowerId.contains('leg')) { met = 5.0; dbCategory = 'Leg Workout'; }
+    else if (lowerId.contains('jog') || lowerId.contains('cardio')) { met = 7.0; dbCategory = 'Cardio'; }
 
     // 3. Calculate calories
     final double totalKalori = calculateCalories(
-      met: (jenisAktifitas['MET_aktifitas'] as num).toDouble(),
+      met: met,
       weightKg: weightKg,
       durationMinutes: durasiLatihan,
     );
 
-    // 4. Build model and persist to aktifitas_harian
-    final record = AktifitasHarianModel(
-      tanggal: DateTime.now().toIso8601String(),
-      idJenisAktifitas: idJenisAktifitas,
-      totalKalori: totalKalori,
-      durasiLatihan: durasiLatihan,
-      pace: pace,
-      jarakTempuh: jarakTempuh,
-    );
-    await _dbHelper.insertAktifitasHarian(record);
+    // 4. Update existing schedule for today, or Insert new
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final activities = await _dbHelper.getAktifitasHarianByDate(today);
+    
+    AktifitasHarianModel? existingSchedule;
+    try {
+      existingSchedule = activities.firstWhere((a) => a.idJenisAktifitas == dbCategory);
+    } catch (e) {
+      existingSchedule = null;
+    }
+
+    if (existingSchedule != null) {
+      // UPDATE existing record
+      final updatedModel = AktifitasHarianModel(
+        idAktifitasHarian: existingSchedule.idAktifitasHarian,
+        tanggal: existingSchedule.tanggal,
+        idJenisAktifitas: dbCategory,
+        // If it's a schedule (kalori == 0), replace it. Otherwise, add to it.
+        totalKalori: (existingSchedule.totalKalori == 0) ? totalKalori : ((existingSchedule.totalKalori ?? 0) + totalKalori),
+        durasiLatihan: (existingSchedule.durasiLatihan == 0) ? durasiLatihan : ((existingSchedule.durasiLatihan ?? 0) + durasiLatihan),
+        pace: pace ?? existingSchedule.pace,
+        jarakTempuh: jarakTempuh ?? existingSchedule.jarakTempuh,
+      );
+      await _dbHelper.updateAktifitasHarian(updatedModel);
+    } else {
+      // INSERT new record
+      final record = AktifitasHarianModel(
+        tanggal: DateTime.now().toIso8601String(),
+        idJenisAktifitas: dbCategory,
+        totalKalori: totalKalori,
+        durasiLatihan: durasiLatihan,
+        pace: pace,
+        jarakTempuh: jarakTempuh,
+      );
+      await _dbHelper.insertAktifitasHarian(record);
+    }
 
     return totalKalori;
   }

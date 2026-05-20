@@ -1,28 +1,54 @@
 import 'dart:async';
+import 'package:pedometer/pedometer.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 /// StepTrackerLogic manages the user's daily step count.
-/// Currently implemented as a simulation for demonstration purposes.
-/// This can be easily replaced with the 'pedometer' package in the future.
+/// Implemented using the real pedometer sensor.
 class StepTrackerLogic {
   final StreamController<int> _stepController = StreamController<int>.broadcast();
-  Timer? _simulationTimer;
+  StreamSubscription<StepCount>? _stepCountSubscription;
   int _currentSteps = 0;
+  int _initialSteps = -1;
 
   /// Start tracking steps.
-  void startTracking() {
-    // In a real app, you would initialize the pedometer stream here.
-    // e.g., Pedometer.stepCountStream.listen((StepCount event) { ... });
-    
-    // For now, we simulate walking by adding steps every few seconds.
-    _simulationTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      _currentSteps += 15; // Simulate 15 steps every 3 seconds
-      _stepController.add(_currentSteps);
-    });
+  void startTracking() async {
+    bool granted = await _checkPermission();
+    if (granted) {
+      _initPedometer();
+    } else {
+      // Provide an initial 0 if permission is denied
+      _stepController.add(0);
+    }
+  }
+
+  Future<bool> _checkPermission() async {
+    final status = await Permission.activityRecognition.request();
+    return status.isGranted;
+  }
+
+  void _initPedometer() {
+    _stepCountSubscription = Pedometer.stepCountStream.listen(
+      _onStepCount,
+      onError: _onStepCountError,
+      cancelOnError: true,
+    );
+  }
+
+  void _onStepCount(StepCount event) {
+    if (_initialSteps == -1) {
+      _initialSteps = event.steps;
+    }
+    _currentSteps = event.steps - _initialSteps;
+    _stepController.add(_currentSteps);
+  }
+
+  void _onStepCountError(error) {
+    print('Pedometer Error: $error');
   }
 
   /// Stop tracking steps.
   void stopTracking() {
-    _simulationTimer?.cancel();
+    _stepCountSubscription?.cancel();
     _stepController.close();
   }
 

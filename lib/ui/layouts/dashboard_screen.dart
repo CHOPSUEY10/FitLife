@@ -76,7 +76,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Filter our hardcoded cards by checking if their titles match the assigned names
     return _workoutItems.where((item) {
       final title = (item['title'] as String).replaceAll('\n', ' ').toLowerCase();
-      return assignedNames.any((assigned) => assigned.contains(title) || title.contains(assigned));
+      return assignedNames.any((assigned) {
+        if (assigned == 'cardio' && title.contains('jogging')) return true;
+        return assigned.contains(title) || title.contains(assigned);
+      });
     }).toList();
   }
 
@@ -293,7 +296,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         },
                       ),
                     ),
-                  );
+                  ).then((_) {
+                    _controller.fetchTodayWorkouts();
+                    _controller.fetchTodayCalories();
+                  });
                 } else if (index == 2) {
                   Navigator.push(
                     context,
@@ -306,7 +312,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         },
                       ),
                     ),
-                  );
+                  ).then((_) {
+                    _controller.fetchTodayWorkouts();
+                    _controller.fetchTodayCalories();
+                  });
                 } else if (index == 3) {
                   Navigator.push(
                     context,
@@ -319,7 +328,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         },
                       ),
                     ),
-                  );
+                  ).then((_) {
+                    _controller.fetchTodayWorkouts();
+                    _controller.fetchTodayCalories();
+                  });
                 }
               },
             ),

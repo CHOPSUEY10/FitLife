@@ -225,7 +225,7 @@ class _JoggingScreenState extends State<JoggingScreen> {
                   ),
                   onPressed: () {
                     Navigator.pop(context);
-                    _resetRun();
+                    Navigator.pop(context);
                   },
                   child: const Text(
                     'Selesai',
