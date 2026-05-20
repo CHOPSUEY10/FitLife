@@ -23,7 +23,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final Color bgColor = const Color(0xFF0A0518);
 
   void _nextPage() {
-    if (_currentPage < 4) {
+    if (_currentPage < 2) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeIn,
@@ -52,9 +52,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             },
             children: [
               _buildStep1(),
-              _buildStep2(),
               _buildStep3(),
-              _buildStep4(),
               _buildStep5(),
             ],
           ),
@@ -66,7 +64,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
-                5,
+                3,
                 (index) => AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   margin: const EdgeInsets.symmetric(horizontal: 5),
@@ -161,46 +159,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // Step 2: Pilih Tujuanmu
-  Widget _buildStep2() {
-    return Stack(
-      children: [
-        Image(image: AssetImage("assets/background/onboardingBg2.png"), fit: BoxFit.cover),
-        SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildLogo(),
-                Text(
-                  'Pilih Tujuanmu',
-                  style: GoogleFonts.allerta(fontSize: 20, color: Colors.white),
-                ),
-                const SizedBox(height: 40),
-                _buildButton('Tetap fit (default)', isGreen: true, onPressed: () async {
-                  await _logic.saveOnboardingData(tujuan: 'Tetap fit', tanggalLahir: null, tinggiBadan: null, beratBadan: null, jenisKelamin: null, waktuLuang: null);
-                  _nextPage();
-                }),
-                const SizedBox(height: 16),
-                _buildButton('Menurunkan berat badan', isGreen: true, onPressed: () async {
-                  await _logic.saveOnboardingData(tujuan: 'Menurunkan berat badan', tanggalLahir: null, tinggiBadan: null, beratBadan: null, jenisKelamin: null, waktuLuang: null);
-                  _nextPage();
-                }),
-                const SizedBox(height: 16),
-                _buildButton('Menaikkan massa otot', isGreen: true, onPressed: () async {
-                  await _logic.saveOnboardingData(tujuan: 'Menaikkan massa otot', tanggalLahir: null, tinggiBadan: null, beratBadan: null, jenisKelamin: null, waktuLuang: null);
-                  _nextPage();
-                }),
-                const SizedBox(height: 60),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   // Step 3: Form
   Widget _buildStep3() {
     return Stack(
@@ -221,58 +179,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   const SizedBox(height: 60),
                 ],
               ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Step 4: Waktu Luang
-  Widget _buildStep4() {
-    return Stack(
-      children: [
-         Image(image: AssetImage("assets/background/onboardingBg4.png"), fit: BoxFit.cover),
-        SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildLogo(),
-                Text(
-                  'Waktu Luang',
-                  style: GoogleFonts.allerta(fontSize: 20, color: Colors.white),
-                ),
-                const SizedBox(height: 40),
-                _buildButton('10-15 menit', isGreen: _selectedWaktuLuang == '10-15 menit', onPressed: () {
-                  setState(() {
-                    _selectedWaktuLuang = '10-15 menit';
-                  });
-                }),
-                const SizedBox(height: 16),
-                _buildButton('20-30 menit', isGreen: _selectedWaktuLuang == '20-30 menit', onPressed: () {
-                  setState(() {
-                    _selectedWaktuLuang = '20-30 menit';
-                  });
-                }),
-                const SizedBox(height: 16),
-                _buildButton('30+ menit', isGreen: _selectedWaktuLuang == '30+ menit', onPressed: () {
-                  setState(() {
-                    _selectedWaktuLuang = '30+ menit';
-                  });
-                }),
-                const Spacer(),
-                _buildButton('Lanjut', isGreen: true, onPressed: () async {
-                  if (_selectedWaktuLuang != null) {
-                    await _logic.saveOnboardingData(waktuLuang: _selectedWaktuLuang, tujuan: null, tanggalLahir: null, tinggiBadan: null, beratBadan: null, jenisKelamin: null);
-                    _nextPage();
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pilih waktu luang terlebih dahulu!')));
-                  }
-                }),
-                const SizedBox(height: 60),
-              ],
             ),
           ),
         ),
