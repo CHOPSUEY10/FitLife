@@ -3,6 +3,7 @@ import '../../core/database/local_db_helper.dart';
 import '../../core/enums/schedule_enum.dart';
 import '../../core/models/aktifitas_harian_model.dart';
 import '../components/bottom_nav_bar.dart';
+import '../components/profile_avatar.dart';
 
 class AddActivityScreen extends StatefulWidget {
   final int initialNavIndex;
@@ -231,10 +232,9 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
                     // Header
                     Row(
                       children: [
-                        CircleAvatar(
-                          backgroundColor: Colors.grey[800],
+                        const ProfileAvatar(
                           radius: 16,
-                          child: const Icon(Icons.person, size: 20, color: Colors.white),
+                          iconSize: 20,
                         ),
                         const SizedBox(width: 8),
                         Text('Hi $_username', style: const TextStyle(color: Color(0xFFC6FF00), fontSize: 16, fontWeight: FontWeight.bold)),

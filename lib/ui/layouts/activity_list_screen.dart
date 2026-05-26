@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../core/database/local_db_helper.dart';
 import '../../core/models/aktifitas_harian_model.dart';
 import '../components/bottom_nav_bar.dart';
+import '../components/profile_avatar.dart';
 import 'add_activity_screen.dart';
 import 'settings_screen.dart';
 
@@ -146,7 +147,7 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
   Widget _buildHeader() {
     return Row(
       children: [
-        CircleAvatar(radius: 22, backgroundColor: Colors.grey[800], child: const Icon(Icons.person, color: white, size: 24)),
+        const ProfileAvatar(radius: 22, iconSize: 24),
         const SizedBox(width: 12),
         Text('Hi $_username', style: const TextStyle(color: limeGreen, fontSize: 18, fontWeight: FontWeight.w600)),
       ],

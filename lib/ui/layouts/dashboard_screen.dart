@@ -4,6 +4,7 @@ import '../components/stats_card.dart';
 import '../components/map_placeholder_card.dart';
 import '../components/workout_card.dart';
 import '../components/bottom_nav_bar.dart';
+import '../components/profile_avatar.dart';
 import 'add_activity_screen.dart';
 import 'abs_workout_screen.dart';
 import 'chest_workout_screen.dart';
@@ -121,10 +122,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     // Header
                     Row(
                       children: [
-                        CircleAvatar(
-                          backgroundColor: Colors.grey[800],
+                        const ProfileAvatar(
                           radius: 16,
-                          child: const Icon(Icons.person, size: 20, color: Colors.white),
+                          iconSize: 20,
                         ),
                         const SizedBox(width: 8),
                         AnimatedBuilder(
