@@ -72,6 +72,7 @@ class _SettingsProfilScreenState extends State<SettingsProfilScreen> {
         imageQuality: 85,
       );
       if (pickedFile != null) {
+        if (!mounted) return;
         setState(() {
           _imageFile = File(pickedFile.path);
         });

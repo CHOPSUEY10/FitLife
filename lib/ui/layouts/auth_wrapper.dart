@@ -6,7 +6,7 @@ import 'home_screen.dart';
 import 'splash_screen.dart';
 import 'otp_verification_screen.dart';
 import 'onboarding_screen.dart';
-import 'dashboard_screen.dart';
+import 'main_screen.dart';
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
@@ -30,7 +30,7 @@ class AuthWrapper extends StatelessWidget {
                 return _loadingScaffold();
               }
               if (dbSnapshot.data != null && dbSnapshot.data!.tujuan != null) {
-                return const DashboardScreen();
+                return const MainScreen();
               } else {
                 return const OnboardingScreen();
               }

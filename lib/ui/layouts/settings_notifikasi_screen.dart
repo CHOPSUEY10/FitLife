@@ -65,6 +65,7 @@ class _SettingsNotifikasiScreenState extends State<SettingsNotifikasiScreen> {
     );
 
     if (picked != null) {
+      if (!mounted) return;
       setState(() {
         _waktuPengingat = "${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}";
       });
@@ -147,20 +148,23 @@ class _SettingsNotifikasiScreenState extends State<SettingsNotifikasiScreen> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Waktu Pengingat',
-                                          style: TextStyle(color: white, fontSize: 15, fontWeight: FontWeight.w600),
-                                        ),
-                                        SizedBox(height: 4),
-                                        Text(
-                                          'Waktu ideal untuk dikirimkan pengingat.',
-                                          style: TextStyle(color: grey, fontSize: 12),
-                                        ),
-                                      ],
+                                    const Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Waktu Pengingat',
+                                            style: TextStyle(color: white, fontSize: 15, fontWeight: FontWeight.w600),
+                                          ),
+                                          SizedBox(height: 4),
+                                          Text(
+                                            'Waktu ideal untuk dikirimkan pengingat.',
+                                            style: TextStyle(color: grey, fontSize: 12),
+                                          ),
+                                        ],
+                                      ),
                                     ),
+                                    const SizedBox(width: 16),
                                     Row(
                                       children: [
                                         Text(

@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import '../components/bottom_nav_bar.dart';
 import '../components/profile_avatar.dart';
 import '../../features/dashboard/logic/settings_controller.dart';
-import 'add_activity_screen.dart';
-import 'activity_list_screen.dart';
 import 'settings_profil_screen.dart';
 import 'settings_data_fisik_screen.dart';
 import 'settings_tujuan_screen.dart';
@@ -15,14 +12,7 @@ import 'settings_notifikasi_screen.dart';
 import 'settings_umum_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
-  final int initialNavIndex;
-  final Function(int)? onNavTapped;
-
-  const SettingsScreen({
-    Key? key,
-    this.initialNavIndex = 3,
-    this.onNavTapped,
-  }) : super(key: key);
+  const SettingsScreen({Key? key}) : super(key: key);
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -36,7 +26,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   static const Color grey = Color(0xFF888888);
   static const Color borderColor = Color(0xFF2A2A3E);
 
-  late int _bottomNavIndex;
   String _activeItem = '';
   late final SettingsController _controller;
   bool _isLoading = true;
@@ -50,7 +39,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _bottomNavIndex = widget.initialNavIndex;
     _controller = SettingsController();
     _loadData();
   }
@@ -64,24 +52,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _handleNavTap(int index) {
-    if (index == 3) return;
-    if (widget.onNavTapped != null) {
-      widget.onNavTapped!(index);
-      return;
-    }
-    if (index == 1) {
-      Navigator.pushReplacement(context, MaterialPageRoute(
-        builder: (_) => AddActivityScreen(initialNavIndex: 1, onNavTapped: (i) => Navigator.pop(context)),
-      ));
-    } else if (index == 2) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ActivityListScreen()));
-    } else {
-      Navigator.pop(context);
-    }
-  }
-
   void _navigateToSubScreen(String label) async {
+    if (_activeItem.isNotEmpty) return; // Prevent double taps
     setState(() => _activeItem = label);
     Widget screen;
     switch (label) {
@@ -125,7 +97,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // Reload settings details
       _loadData();
     }
-    setState(() => _activeItem = '');
+    if (mounted) {
+      setState(() => _activeItem = '');
+    }
   }
 
   @override
@@ -155,7 +129,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
             ),
-            CustomBottomNavBar(selectedIndex: _bottomNavIndex, onItemTapped: _handleNavTap),
           ],
         ),
       ),

@@ -3,7 +3,6 @@ import '../../features/dashboard/logic/dashboard_controller.dart';
 import '../components/stats_card.dart';
 import '../components/map_placeholder_card.dart';
 import '../components/workout_card.dart';
-import '../components/bottom_nav_bar.dart';
 import '../components/profile_avatar.dart';
 import 'add_activity_screen.dart';
 import 'abs_workout_screen.dart';
@@ -23,7 +22,6 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   late final DashboardController _controller;
-  int _bottomNavIndex = 0;
   String _selectedCategory = 'All Workouts';
 
   // Workout items tagged by category
@@ -104,81 +102,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _controller.fetchTodayCalories();
       _controller.fetchTodayWorkouts();
     });
-  }
-
-  void _handleTabNavigation(int targetIndex) {
-    if (targetIndex == _bottomNavIndex) return;
-
-    // If we are currently on a sub-screen (index 1, 2, or 3), pop it first
-    if (_bottomNavIndex != 0) {
-      Navigator.pop(context, true); // Pass true to indicate intentional tab switching
-    }
-
-    // Update index
-    setState(() {
-      _bottomNavIndex = targetIndex;
-    });
-
-    // Refresh dashboard stats
-    _controller.fetchTodayWorkouts();
-    _controller.fetchTodayCalories();
-
-    // If target is not 0 (home/dashboard), push the respective screen
-    if (targetIndex == 1) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => AddActivityScreen(
-            initialNavIndex: 1,
-            onNavTapped: _handleTabNavigation,
-          ),
-        ),
-      ).then((result) {
-        if (result != true) {
-          setState(() {
-            _bottomNavIndex = 0;
-          });
-          _controller.fetchTodayWorkouts();
-          _controller.fetchTodayCalories();
-        }
-      });
-    } else if (targetIndex == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ActivityListScreen(
-            initialNavIndex: 2,
-            onNavTapped: _handleTabNavigation,
-          ),
-        ),
-      ).then((result) {
-        if (result != true) {
-          setState(() {
-            _bottomNavIndex = 0;
-          });
-          _controller.fetchTodayWorkouts();
-          _controller.fetchTodayCalories();
-        }
-      });
-    } else if (targetIndex == 3) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => SettingsScreen(
-            initialNavIndex: 3,
-            onNavTapped: _handleTabNavigation,
-          ),
-        ),
-      ).then((result) {
-        if (result != true) {
-          setState(() {
-            _bottomNavIndex = 0;
-          });
-          _controller.fetchTodayWorkouts();
-          _controller.fetchTodayCalories();
-        }
-      });
-    }
   }
 
   @override
@@ -351,12 +274,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
               ),
-            ),
-
-            // Bottom Nav
-            CustomBottomNavBar(
-              selectedIndex: _bottomNavIndex,
-              onItemTapped: _handleTabNavigation,
             ),
           ],
         ),

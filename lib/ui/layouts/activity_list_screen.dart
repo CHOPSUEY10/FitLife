@@ -2,20 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../core/database/local_db_helper.dart';
 import '../../core/models/aktifitas_harian_model.dart';
-import '../components/bottom_nav_bar.dart';
 import '../components/profile_avatar.dart';
-import 'add_activity_screen.dart';
-import 'settings_screen.dart';
 
 class ActivityListScreen extends StatefulWidget {
-  final int initialNavIndex;
-  final Function(int)? onNavTapped;
-
-  const ActivityListScreen({
-    Key? key,
-    this.initialNavIndex = 2,
-    this.onNavTapped,
-  }) : super(key: key);
+  const ActivityListScreen({Key? key}) : super(key: key);
 
   @override
   State<ActivityListScreen> createState() => _ActivityListScreenState();
@@ -28,7 +18,6 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
   static const Color white = Colors.white;
   static const Color grey = Color(0xFF888888);
 
-  late int _bottomNavIndex;
   DateTime _focusedMonth = DateTime.now();
   DateTime _selectedDate = DateTime.now();
   String _username = 'User';
@@ -41,7 +30,6 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
   @override
   void initState() {
     super.initState();
-    _bottomNavIndex = widget.initialNavIndex;
     _fetchUsername();
     _fetchMonthData();
     _fetchDailyActivities();
@@ -91,20 +79,6 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
     return '${months[_focusedMonth.month - 1]} ${_focusedMonth.year}';
   }
 
-  void _handleNavTap(int index) {
-    if (index == 2) return;
-    if (widget.onNavTapped != null) { widget.onNavTapped!(index); return; }
-    if (index == 1) {
-      Navigator.pushReplacement(context, MaterialPageRoute(
-        builder: (_) => AddActivityScreen(initialNavIndex: 1, onNavTapped: (i) => Navigator.pop(context)),
-      ));
-    } else if (index == 3) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
-    } else {
-      Navigator.pop(context);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -137,7 +111,6 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
                 ),
               ),
             ),
-            CustomBottomNavBar(selectedIndex: _bottomNavIndex, onItemTapped: _handleNavTap),
           ],
         ),
       ),

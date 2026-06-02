@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../features/sign_up/logic/onboarding_logic.dart';
-import 'dashboard_screen.dart';
+import 'main_screen.dart';
 import 'onboarding_form.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -29,9 +29,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.easeIn,
       );
     } else {
-      // After onboarding is complete, they are already authenticated, so go to Dashboard
+      // After onboarding is complete, they are already authenticated, so go to MainScreen
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const DashboardScreen()),
+        MaterialPageRoute(builder: (_) => const MainScreen()),
       );
     }
   }

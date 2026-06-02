@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../features/workout/logic/workout_logic.dart';
+import '../../features/workout/logic/workout_generator.dart';
+import '../../features/dashboard/logic/settings_controller.dart';
 
 class ArmWorkoutScreen extends StatefulWidget {
   const ArmWorkoutScreen({Key? key}) : super(key: key);
@@ -19,55 +21,48 @@ class _ArmWorkoutScreenState extends State<ArmWorkoutScreen>
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
-  final List<Map<String, dynamic>> _exercises = [
-    {
-      'name': 'Bicep Curl',
-      'reps': '12 Reps',
-      'duration': 35,
-      'image': 'assets/illustration/pushup.webp',
-      'description': 'Berdiri tegak, tekuk siku angkat beban ke bahu, turunkan perlahan.',
-      'tip': 'Jaga siku tetap di samping tubuh',
-    },
-    {
-      'name': 'Tricep Dip',
-      'reps': '10 Reps',
-      'duration': 40,
-      'image': 'assets/illustration/pushup.webp',
-      'description': 'Tangan di kursi di belakang, turunkan tubuh dengan menekuk siku.',
-      'tip': 'Turun sampai siku 90 derajat',
-    },
-    {
-      'name': 'Hammer Curl',
-      'reps': '12 Reps',
-      'duration': 35,
-      'image': 'assets/illustration/pushup.webp',
-      'description': 'Seperti bicep curl tapi dengan posisi tangan netral.',
-      'tip': 'Kontrol gerakan naik dan turun',
-    },
-    {
-      'name': 'Overhead Tricep Ext.',
-      'reps': '10 Reps',
-      'duration': 40,
-      'image': 'assets/illustration/pushup.webp',
-      'description': 'Angkat beban di atas kepala, tekuk siku ke belakang lalu luruskan.',
-      'tip': 'Jaga lengan atas tetap di posisi',
-    },
-    {
-      'name': 'Chin Up',
-      'reps': '8 Reps',
-      'duration': 45,
-      'image': 'assets/illustration/pushup.webp',
-      'description': 'Gantung di palang, telapak menghadap wajah, tarik tubuh ke atas.',
-      'tip': 'Fokus pada kontraksi bisep',
-    },
-  ];
+  late List<Map<String, dynamic>> _exercises = [];
+  late final SettingsController _settingsController;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _progressController = AnimationController(vsync: this, duration: const Duration(seconds: 35));
-    _pulseController = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.06).animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
+    _settingsController = SettingsController();
+    _initWorkoutData();
+  }
+
+  Future<void> _initWorkoutData() async {
+    // 1. Tunggu loading data preferensi user dari database / shared_prefs
+    await _settingsController.loadAll();
+    
+    // 2. Generate workout berdasarkan level aktivitas dan waktu luang
+    if (mounted) {
+      setState(() {
+        _exercises = WorkoutGenerator.generateWorkout(
+          'arm', 
+          _settingsController.levelAktivitas, 
+          _settingsController.waktuLuang
+        );
+        
+        // 3. Inisialisasi controller animasi berdasarkan durasi gerakan pertama
+        _progressController = AnimationController(
+          vsync: this, 
+          duration: Duration(seconds: _exercises.isNotEmpty ? _exercises[0]['duration'] : 35)
+        );
+        
+        _pulseController = AnimationController(
+          vsync: this, 
+          duration: const Duration(milliseconds: 900)
+        )..repeat(reverse: true);
+        
+        _pulseAnimation = Tween<double>(begin: 1.0, end: 1.06).animate(
+          CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut)
+        );
+        
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -159,6 +154,19 @@ class _ArmWorkoutScreenState extends State<ArmWorkoutScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF0F0C1B),
+        body: Center(child: CircularProgressIndicator(color: Color(0xFFC6FF00))),
+      );
+    }
+    if (_exercises.isEmpty) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF0F0C1B),
+        body: Center(child: Text('Tidak ada gerakan tersedia', style: TextStyle(color: Colors.white))),
+      );
+    }
+
     final exercise = _exercises[_currentIndex];
     return Scaffold(
       backgroundColor: const Color(0xFF0F0C1B),

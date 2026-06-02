@@ -2,25 +2,16 @@ import 'package:flutter/material.dart';
 import '../../core/database/local_db_helper.dart';
 import '../../core/enums/schedule_enum.dart';
 import '../../core/models/aktifitas_harian_model.dart';
-import '../components/bottom_nav_bar.dart';
 import '../components/profile_avatar.dart';
 
 class AddActivityScreen extends StatefulWidget {
-  final int initialNavIndex;
-  final Function(int)? onNavTapped;
-
-  const AddActivityScreen({
-    Key? key,
-    this.initialNavIndex = 1,
-    this.onNavTapped,
-  }) : super(key: key);
+  const AddActivityScreen({Key? key}) : super(key: key);
 
   @override
   State<AddActivityScreen> createState() => _AddActivityScreenState();
 }
 
 class _AddActivityScreenState extends State<AddActivityScreen> {
-  int _bottomNavIndex = 1;
   String _username = 'User';
 
   JadwalAktivitas? _selectedSchedule;
@@ -30,7 +21,6 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
   @override
   void initState() {
     super.initState();
-    _bottomNavIndex = widget.initialNavIndex;
     _fetchUsername();
     _fetchMuscleGroups();
   }
@@ -47,7 +37,9 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
   Future<void> _fetchUsername() async {
     final userMetrics = await LocalDBHelper.instance.getUserMetrics();
     if (userMetrics != null && userMetrics.nama != null && userMetrics.nama!.isNotEmpty) {
-      setState(() => _username = userMetrics.nama!);
+      if (mounted) {
+        setState(() => _username = userMetrics.nama!);
+      }
     }
   }
 
@@ -288,18 +280,6 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
                   ],
                 ),
               ),
-            ),
-
-            // Bottom Nav
-            CustomBottomNavBar(
-              selectedIndex: _bottomNavIndex,
-              onItemTapped: (index) {
-                if (widget.onNavTapped != null) {
-                  widget.onNavTapped!(index);
-                } else {
-                  setState(() => _bottomNavIndex = index);
-                }
-              },
             ),
           ],
         ),

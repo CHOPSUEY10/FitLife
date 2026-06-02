@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../features/workout/logic/workout_logic.dart';
+import '../../features/workout/logic/workout_generator.dart';
+import '../../features/dashboard/logic/settings_controller.dart';
 
 class LegWorkoutScreen extends StatefulWidget {
   const LegWorkoutScreen({Key? key}) : super(key: key);
@@ -19,55 +21,48 @@ class _LegWorkoutScreenState extends State<LegWorkoutScreen>
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
-  final List<Map<String, dynamic>> _exercises = [
-    {
-      'name': 'Squat',
-      'reps': '15 Reps',
-      'duration': 40,
-      'image': 'assets/illustration/plank.webp',
-      'description': 'Berdiri selebar bahu, tekuk lutut turunkan pinggul lalu kembali berdiri.',
-      'tip': 'Lutut tidak melewati ujung kaki',
-    },
-    {
-      'name': 'Lunge',
-      'reps': '12 Reps (tiap kaki)',
-      'duration': 45,
-      'image': 'assets/illustration/plank.webp',
-      'description': 'Langkah maju, tekuk kedua lutut 90°, lalu kembali ke posisi awal.',
-      'tip': 'Jaga tubuh tetap tegak',
-    },
-    {
-      'name': 'Calf Raise',
-      'reps': '20 Reps',
-      'duration': 30,
-      'image': 'assets/illustration/plank.webp',
-      'description': 'Berdiri tegak, angkat tumit setinggi mungkin lalu turunkan perlahan.',
-      'tip': 'Tahan di posisi atas 1-2 detik',
-    },
-    {
-      'name': 'Wall Sit',
-      'reps': '30 Detik',
-      'duration': 35,
-      'image': 'assets/illustration/plank.webp',
-      'description': 'Sandarkan punggung di dinding, tekuk lutut 90° dan tahan posisi.',
-      'tip': 'Paha harus sejajar dengan lantai',
-    },
-    {
-      'name': 'Glute Bridge',
-      'reps': '15 Reps',
-      'duration': 35,
-      'image': 'assets/illustration/plank.webp',
-      'description': 'Berbaring, tekuk lutut, angkat pinggul ke atas lalu turunkan.',
-      'tip': 'Kencangkan otot glute di puncak',
-    },
-  ];
+  late List<Map<String, dynamic>> _exercises = [];
+  late final SettingsController _settingsController;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _progressController = AnimationController(vsync: this, duration: const Duration(seconds: 40));
-    _pulseController = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.06).animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
+    _settingsController = SettingsController();
+    _initWorkoutData();
+  }
+
+  Future<void> _initWorkoutData() async {
+    // 1. Tunggu loading data preferensi user dari database / shared_prefs
+    await _settingsController.loadAll();
+    
+    // 2. Generate workout berdasarkan level aktivitas dan waktu luang
+    if (mounted) {
+      setState(() {
+        _exercises = WorkoutGenerator.generateWorkout(
+          'leg', 
+          _settingsController.levelAktivitas, 
+          _settingsController.waktuLuang
+        );
+        
+        // 3. Inisialisasi controller animasi berdasarkan durasi gerakan pertama
+        _progressController = AnimationController(
+          vsync: this, 
+          duration: Duration(seconds: _exercises.isNotEmpty ? _exercises[0]['duration'] : 40)
+        );
+        
+        _pulseController = AnimationController(
+          vsync: this, 
+          duration: const Duration(milliseconds: 900)
+        )..repeat(reverse: true);
+        
+        _pulseAnimation = Tween<double>(begin: 1.0, end: 1.06).animate(
+          CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut)
+        );
+        
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -159,6 +154,19 @@ class _LegWorkoutScreenState extends State<LegWorkoutScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF0F0C1B),
+        body: Center(child: CircularProgressIndicator(color: Color(0xFFC6FF00))),
+      );
+    }
+    if (_exercises.isEmpty) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF0F0C1B),
+        body: Center(child: Text('Tidak ada gerakan tersedia', style: TextStyle(color: Colors.white))),
+      );
+    }
+
     final exercise = _exercises[_currentIndex];
     return Scaffold(
       backgroundColor: const Color(0xFF0F0C1B),
