@@ -106,6 +106,81 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
+  void _handleTabNavigation(int targetIndex) {
+    if (targetIndex == _bottomNavIndex) return;
+
+    // If we are currently on a sub-screen (index 1, 2, or 3), pop it first
+    if (_bottomNavIndex != 0) {
+      Navigator.pop(context, true); // Pass true to indicate intentional tab switching
+    }
+
+    // Update index
+    setState(() {
+      _bottomNavIndex = targetIndex;
+    });
+
+    // Refresh dashboard stats
+    _controller.fetchTodayWorkouts();
+    _controller.fetchTodayCalories();
+
+    // If target is not 0 (home/dashboard), push the respective screen
+    if (targetIndex == 1) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AddActivityScreen(
+            initialNavIndex: 1,
+            onNavTapped: _handleTabNavigation,
+          ),
+        ),
+      ).then((result) {
+        if (result != true) {
+          setState(() {
+            _bottomNavIndex = 0;
+          });
+          _controller.fetchTodayWorkouts();
+          _controller.fetchTodayCalories();
+        }
+      });
+    } else if (targetIndex == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ActivityListScreen(
+            initialNavIndex: 2,
+            onNavTapped: _handleTabNavigation,
+          ),
+        ),
+      ).then((result) {
+        if (result != true) {
+          setState(() {
+            _bottomNavIndex = 0;
+          });
+          _controller.fetchTodayWorkouts();
+          _controller.fetchTodayCalories();
+        }
+      });
+    } else if (targetIndex == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SettingsScreen(
+            initialNavIndex: 3,
+            onNavTapped: _handleTabNavigation,
+          ),
+        ),
+      ).then((result) {
+        if (result != true) {
+          setState(() {
+            _bottomNavIndex = 0;
+          });
+          _controller.fetchTodayWorkouts();
+          _controller.fetchTodayCalories();
+        }
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -281,59 +356,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             // Bottom Nav
             CustomBottomNavBar(
               selectedIndex: _bottomNavIndex,
-              onItemTapped: (index) {
-                if (index == 0) {
-                  setState(() => _bottomNavIndex = 0);
-                } else if (index == 1) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => AddActivityScreen(
-                        initialNavIndex: 1,
-                        onNavTapped: (i) {
-                          Navigator.pop(context);
-                          if (i != 1) setState(() => _bottomNavIndex = i);
-                        },
-                      ),
-                    ),
-                  ).then((_) {
-                    _controller.fetchTodayWorkouts();
-                    _controller.fetchTodayCalories();
-                  });
-                } else if (index == 2) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ActivityListScreen(
-                        initialNavIndex: 2,
-                        onNavTapped: (i) {
-                          Navigator.pop(context);
-                          setState(() => _bottomNavIndex = i);
-                        },
-                      ),
-                    ),
-                  ).then((_) {
-                    _controller.fetchTodayWorkouts();
-                    _controller.fetchTodayCalories();
-                  });
-                } else if (index == 3) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => SettingsScreen(
-                        initialNavIndex: 3,
-                        onNavTapped: (i) {
-                          Navigator.pop(context);
-                          setState(() => _bottomNavIndex = i);
-                        },
-                      ),
-                    ),
-                  ).then((_) {
-                    _controller.fetchTodayWorkouts();
-                    _controller.fetchTodayCalories();
-                  });
-                }
-              },
+              onItemTapped: _handleTabNavigation,
             ),
           ],
         ),
