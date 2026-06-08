@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/database/local_db_helper.dart';
 import '../../../core/models/user_model.dart';
+import '../../../core/models/target_harian_model.dart';
 
 class SettingsController extends ChangeNotifier {
   // ── User profile & physical data ──────────────────────────
@@ -17,9 +18,6 @@ class SettingsController extends ChangeNotifier {
 
   // ── Waktu Luang ───────────────────────────────────────────
   String waktuLuang = '30 - 45 menit';
-
-  // ── Preferensi Aktivitas ─────────────────────────────────
-  List<String> preferensiAktivitas = [];
 
   // ── Level Aktivitas ───────────────────────────────────────
   String levelAktivitas = 'Pemula';
@@ -54,8 +52,8 @@ class SettingsController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _loadFromDB();
       await _loadFromPrefs();
+      await _loadFromDB();
     } catch (e) {
       debugPrint('SettingsController loadAll error: $e');
     }
@@ -75,12 +73,15 @@ class SettingsController extends ChangeNotifier {
       tujuan = user.tujuan ?? 'Turun Berat Badan';
       waktuLuang = user.waktuLuang ?? '30 - 45 menit';
     }
+
+    final target = await LocalDBHelper.instance.getTargetHarian();
+    targetLangkah = target.targetLangkah;
+    targetKalori = target.targetKalori;
+    targetDurasiLatihan = target.targetDurasiLatihan;
   }
 
   Future<void> _loadFromPrefs() async {
     final prefs = await SharedPreferences.getInstance();
-    preferensiAktivitas =
-        prefs.getStringList('preferensiAktivitas') ?? ['Latihan Kekuatan'];
     levelAktivitas = prefs.getString('levelAktivitas') ?? 'Pemula';
     targetLangkah = prefs.getInt('targetLangkah') ?? 8000;
     targetKalori = prefs.getDouble('targetKalori') ?? 500;
@@ -131,13 +132,6 @@ class SettingsController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> savePreferensiAktivitas(List<String> preferensi) async {
-    preferensiAktivitas = preferensi;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('preferensiAktivitas', preferensiAktivitas);
-    notifyListeners();
-  }
-
   Future<void> saveLevelAktivitas(String level) async {
     levelAktivitas = level;
     final prefs = await SharedPreferences.getInstance();
@@ -153,10 +147,20 @@ class SettingsController extends ChangeNotifier {
     targetLangkah = langkah;
     targetKalori = kalori;
     targetDurasiLatihan = durasi;
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('targetLangkah', langkah);
     await prefs.setDouble('targetKalori', kalori);
     await prefs.setInt('targetDurasiLatihan', durasi);
+
+    final targetModel = TargetHarianModel(
+      id: 'local_target',
+      targetLangkah: langkah,
+      targetKalori: kalori,
+      targetDurasiLatihan: durasi,
+    );
+    await LocalDBHelper.instance.saveTargetHarian(targetModel);
+
     notifyListeners();
   }
 

@@ -24,19 +24,15 @@ class OtpController extends ChangeNotifier {
   bool get canResend => _countdown == 0;
 
   Timer? _timer;
-  
-  String? _verificationId;
 
-  /// Handles 6-digit OTP input
   void setOtpCode(String code) {
     if (code.length <= 6) {
       _otpCode = code;
-      _error = null; // Clear error when user types
+      _error = null;
       notifyListeners();
     }
   }
 
-  /// Implements 60-second countdown timer for Resend OTP
   void startCountdown() {
     _countdown = 60;
     _error = null;
@@ -52,16 +48,14 @@ class OtpController extends ChangeNotifier {
     });
   }
 
-  /// Sends OTP using the OtpService via Firebase Phone Auth
-  Future<void> sendOtp(String phoneNumber) async {
+  Future<void> sendOtp(String email) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
-    await _otpService.sendOtpPhone(
-      phoneNumber: phoneNumber,
-      onCodeSent: (String verificationId) {
-        _verificationId = verificationId;
+    await _otpService.sendOtpEmail(
+      email: email,
+      onCodeSent: () {
         _isLoading = false;
         startCountdown();
       },
@@ -73,22 +67,9 @@ class OtpController extends ChangeNotifier {
     );
   }
 
-  /// Verifies the 6-digit OTP
-  Future<bool> verifyOtp() async {
+  Future<bool> verifyOtp(String email) async {
     if (_otpCode.length != 6) {
-      _error = InvalidOtpFailure("OTP must be exactly 6 digits.");
-      notifyListeners();
-      return false;
-    }
-
-    if (_countdown == 0) {
-      _error = ExpiredOtpFailure("OTP has expired. Please request a new one.");
-      notifyListeners();
-      return false;
-    }
-
-    if (_verificationId == null) {
-      _error = InvalidOtpFailure("Verification ID is missing. Please resend code.");
+      _error = InvalidOtpFailure("Kode OTP harus terdiri dari 6 digit.");
       notifyListeners();
       return false;
     }
@@ -98,8 +79,8 @@ class OtpController extends ChangeNotifier {
     notifyListeners();
 
     final success = await _otpService.verifyOtp(
-      verificationId: _verificationId!, 
-      smsCode: _otpCode,
+      email: email,
+      code: _otpCode,
     );
 
     _isLoading = false;
@@ -107,7 +88,7 @@ class OtpController extends ChangeNotifier {
       notifyListeners();
       return true;
     } else {
-      _error = InvalidOtpFailure("Invalid OTP entered.");
+      _error = InvalidOtpFailure("Kode OTP tidak valid.");
       notifyListeners();
       return false;
     }

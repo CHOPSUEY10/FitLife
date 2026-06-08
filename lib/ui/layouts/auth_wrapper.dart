@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/database/local_db_helper.dart';
-import '../../core/service/phone_prefs_service.dart';
-import 'home_screen.dart';
+import '../../core/service/otp_prefs_service.dart';
 import 'splash_screen.dart';
-import 'otp_verification_screen.dart';
 import 'onboarding_screen.dart';
 import 'main_screen.dart';
+import 'otp_verification_screen.dart';
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
@@ -23,23 +22,47 @@ class AuthWrapper extends StatelessWidget {
 
         // ── Signed in ────────────────────────────────────────────────────────
         if (snapshot.hasData && snapshot.data != null) {
-          return FutureBuilder(
-            future: LocalDBHelper.instance.getUserMetrics(),
-            builder: (context, dbSnapshot) {
-              if (dbSnapshot.connectionState == ConnectionState.waiting) {
-                return _loadingScaffold();
-              }
-              if (dbSnapshot.data != null && dbSnapshot.data!.tujuan != null) {
-                return const MainScreen();
-              } else {
-                return const OnboardingScreen();
-              }
-            },
-          );
+          final user = snapshot.data!;
+          final isEmailUser = user.providerData.any((info) => info.providerId == 'password');
+          
+          if (isEmailUser) {
+            return FutureBuilder<bool>(
+              future: OtpPrefsService.isOtpVerified(),
+              builder: (context, otpSnapshot) {
+                if (otpSnapshot.connectionState == ConnectionState.waiting) {
+                  return _loadingScaffold();
+                }
+                final isVerified = otpSnapshot.data ?? false;
+                if (!isVerified) {
+                  return OtpVerificationScreen(email: user.email ?? '');
+                }
+                
+                return _buildDbMetricsCheck();
+              },
+            );
+          }
+
+          return _buildDbMetricsCheck();
         }
 
         // ── Not signed in ────────────────────────────────────────────────────
         return const SplashScreen();
+      },
+    );
+  }
+
+  Widget _buildDbMetricsCheck() {
+    return FutureBuilder(
+      future: LocalDBHelper.instance.getUserMetrics(),
+      builder: (context, dbSnapshot) {
+        if (dbSnapshot.connectionState == ConnectionState.waiting) {
+          return _loadingScaffold();
+        }
+        if (dbSnapshot.data != null && dbSnapshot.data!.tujuan != null) {
+          return const MainScreen();
+        } else {
+          return const OnboardingScreen();
+        }
       },
     );
   }

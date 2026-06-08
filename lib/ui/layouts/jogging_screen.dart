@@ -1,9 +1,7 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import '../../features/workout/logic/workout_logic.dart';
-import '../../features/marathon/logic/location_logic.dart';
+import '../../features/marathon/logic/jogging_controller.dart';
 
 class JoggingScreen extends StatefulWidget {
   const JoggingScreen({Key? key}) : super(key: key);
@@ -20,142 +18,44 @@ class _JoggingScreenState extends State<JoggingScreen> {
   static const Color grey = Color(0xFF888888);
 
   final MapController _mapController = MapController();
-  final List<LatLng> _routePoints = [];
-  LatLng? _currentPosition;
-
-  bool _isRunning = false;
-  bool _isPaused = false;
-  bool _hasPermission = false;
-
-  double _distanceMeters = 0;
-  int _durationSeconds = 0;
-  double _calories = 0;
-  double _avgPace = 0;
-
-  final LocationLogic _locationLogic = LocationLogic();
-
-  StreamSubscription<LatLng>? _positionStream;
-  Timer? _durationTimer;
-  LatLng? _lastPosition;
+  late final JoggingController _controller;
 
   @override
   void initState() {
     super.initState();
-    _checkPermission();
+    _controller = JoggingController();
+    _controller.checkPermission().then((_) {
+      if (_controller.hasPermission && _controller.currentPosition != null) {
+        _mapController.move(_controller.currentPosition!, 16);
+      }
+    });
   }
 
   @override
   void dispose() {
-    _positionStream?.cancel();
-    _durationTimer?.cancel();
+    _controller.dispose();
     super.dispose();
   }
 
-  Future<void> _checkPermission() async {
-    final hasPermission = await _locationLogic.checkAndRequestPermission();
-    if (hasPermission) {
-      setState(() => _hasPermission = true);
-      await _initCurrentLocation();
-    }
-  }
-
-  Future<void> _initCurrentLocation() async {
-    final latLng = await _locationLogic.getCurrentLocation();
-    if (latLng != null) {
-      setState(() => _currentPosition = latLng);
-      _mapController.move(latLng, 16);
-    }
-  }
-
   void _startRun() {
-    setState(() {
-      _isRunning = true;
-      _isPaused = false;
-    });
-
-    _durationTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      setState(() => _durationSeconds++);
-    });
-
-    _positionStream = _locationLogic.getLocationStream(distanceFilter: 5)
-        .listen((LatLng newPoint) {
-      setState(() {
-        _currentPosition = newPoint;
-        _routePoints.add(newPoint);
-        if (_lastPosition != null) {
-          final dist = _locationLogic.calculateDistance(_lastPosition!, newPoint);
-          _distanceMeters += dist;
-          _calories = _distanceMeters / 1000 * 60;
-        }
-        if (_distanceMeters > 0 && _durationSeconds > 0) {
-          _avgPace = (_durationSeconds / 60) / (_distanceMeters / 1000);
-        }
-        _lastPosition = newPoint;
-      });
-      _mapController.move(newPoint, _mapController.camera.zoom);
-    });
-  }
-
-  void _pauseRun() {
-    setState(() => _isPaused = true);
-    _positionStream?.pause();
-    _durationTimer?.cancel();
-  }
-
-  void _resumeRun() {
-    setState(() => _isPaused = false);
-    _positionStream?.resume();
-    _durationTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      setState(() => _durationSeconds++);
+    _controller.startRun((LatLng newPoint) {
+      if (mounted) {
+        _mapController.move(newPoint, _mapController.camera.zoom);
+      }
     });
   }
 
   void _stopRun() async {
-    _positionStream?.cancel();
-    _durationTimer?.cancel();
-    setState(() {
-      _isRunning = false;
-      _isPaused = false;
-    });
-
-    // Save workout record to DB
-    final durationMinutes = (_durationSeconds / 60).ceil();
-    final paceInt = _avgPace > 0 ? _avgPace.round() : null;
-    final distanceKm = _distanceMeters / 1000;
-
-    final logic = WorkoutLogic();
-    final savedCal = await logic.saveWorkoutRecord(
-      idJenisAktifitas: 'jogging',
-      durasiLatihan: durationMinutes > 0 ? durationMinutes : 1,
-      pace: paceInt,
-      jarakTempuh: distanceKm,
-    );
-    // Update displayed calories with DB-computed value
-    if (savedCal > 0) {
-      setState(() => _calories = savedCal);
-    }
-
+    await _controller.stopRun();
     if (!mounted) return;
     _showResultDialog();
   }
 
-  void _resetRun() {
-    setState(() {
-      _routePoints.clear();
-      _distanceMeters = 0;
-      _durationSeconds = 0;
-      _calories = 0;
-      _avgPace = 0;
-      _lastPosition = null;
-      _isRunning = false;
-      _isPaused = false;
-    });
-  }
-
   String get _formattedDuration {
-    final h = _durationSeconds ~/ 3600;
-    final m = (_durationSeconds % 3600) ~/ 60;
-    final s = _durationSeconds % 60;
+    final secs = _controller.durationSeconds;
+    final h = secs ~/ 3600;
+    final m = (secs % 3600) ~/ 60;
+    final s = secs % 60;
     if (h > 0) {
       return '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
     }
@@ -163,14 +63,16 @@ class _JoggingScreenState extends State<JoggingScreen> {
   }
 
   String get _formattedDistance {
-    if (_distanceMeters < 1000) return '${_distanceMeters.toStringAsFixed(0)} m';
-    return '${(_distanceMeters / 1000).toStringAsFixed(2)} km';
+    final dist = _controller.distanceMeters;
+    if (dist < 1000) return '${dist.toStringAsFixed(0)} m';
+    return '${(dist / 1000).toStringAsFixed(2)} km';
   }
 
   String get _formattedPace {
-    if (_avgPace == 0) return "--'--\"";
-    final min = _avgPace.floor();
-    final sec = ((_avgPace - min) * 60).round();
+    final pace = _controller.avgPace;
+    if (pace == 0) return "--'--\"";
+    final min = pace.floor();
+    final sec = ((pace - min) * 60).round();
     return "$min'${sec.toString().padLeft(2, '0')}\"";
   }
 
@@ -198,7 +100,7 @@ class _JoggingScreenState extends State<JoggingScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Color(0xFF0F0C1B),
+                  color: const Color(0xFF0F0C1B),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -207,7 +109,7 @@ class _JoggingScreenState extends State<JoggingScreen> {
                     const Divider(color: Color(0xFF2A2A3E), height: 20),
                     _resultRow('Durasi', _formattedDuration, Icons.timer_outlined),
                     const Divider(color: Color(0xFF2A2A3E), height: 20),
-                    _resultRow('Kalori', '${_calories.toStringAsFixed(0)} kkal', Icons.local_fire_department_outlined),
+                    _resultRow('Kalori', '${_controller.calories.toStringAsFixed(0)} kkal', Icons.local_fire_department_outlined),
                     const Divider(color: Color(0xFF2A2A3E), height: 20),
                     _resultRow('Avg Pace', '$_formattedPace /km', Icons.speed),
                   ],
@@ -254,19 +156,24 @@ class _JoggingScreenState extends State<JoggingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: bgColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildAppBar(),
-            Expanded(child: _buildMap()),
-            _buildStatsBar(),
-            _buildControls(),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Scaffold(
+          backgroundColor: bgColor,
+          body: SafeArea(
+            child: Column(
+              children: [
+                _buildAppBar(),
+                Expanded(child: _buildMap()),
+                _buildStatsBar(),
+                _buildControls(),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -296,10 +203,10 @@ class _JoggingScreenState extends State<JoggingScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: _isRunning && !_isPaused ? limeGreen.withOpacity(0.15) : cardColor,
+              color: _controller.isRunning && !_controller.isPaused ? limeGreen.withOpacity(0.15) : cardColor,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: _isRunning && !_isPaused ? limeGreen : const Color(0xFF2A2A3E),
+                color: _controller.isRunning && !_controller.isPaused ? limeGreen : const Color(0xFF2A2A3E),
               ),
             ),
             child: Row(
@@ -308,19 +215,19 @@ class _JoggingScreenState extends State<JoggingScreen> {
                   width: 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: _isRunning && !_isPaused ? limeGreen : grey,
+                    color: _controller.isRunning && !_controller.isPaused ? limeGreen : grey,
                     shape: BoxShape.circle,
                   ),
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  _isRunning && !_isPaused
+                  _controller.isRunning && !_controller.isPaused
                       ? 'Live'
-                      : _isPaused
+                      : _controller.isPaused
                       ? 'Paused'
                       : 'Ready',
                   style: TextStyle(
-                    color: _isRunning && !_isPaused ? limeGreen : grey,
+                    color: _controller.isRunning && !_controller.isPaused ? limeGreen : grey,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -334,7 +241,7 @@ class _JoggingScreenState extends State<JoggingScreen> {
   }
 
   Widget _buildMap() {
-    if (!_hasPermission) {
+    if (!_controller.hasPermission) {
       return Container(
         color: cardColor,
         child: Center(
@@ -353,7 +260,7 @@ class _JoggingScreenState extends State<JoggingScreen> {
                   backgroundColor: limeGreen,
                   foregroundColor: Colors.black,
                 ),
-                onPressed: _checkPermission,
+                onPressed: _controller.checkPermission,
                 child: const Text('Izinkan Lokasi'),
               ),
             ],
@@ -362,7 +269,7 @@ class _JoggingScreenState extends State<JoggingScreen> {
       );
     }
 
-    final center = _currentPosition ?? const LatLng(-6.2088, 106.8456);
+    final center = _controller.currentPosition ?? const LatLng(-6.2088, 106.8456);
 
     return FlutterMap(
       mapController: _mapController,
@@ -378,22 +285,22 @@ class _JoggingScreenState extends State<JoggingScreen> {
           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           userAgentPackageName: 'com.example.marathontracker',
         ),
-        if (_routePoints.length >= 2)
+        if (_controller.routePoints.length >= 2)
           PolylineLayer(
             polylines: [
               Polyline(
-                points: _routePoints,
+                points: _controller.routePoints,
                 color: limeGreen,
                 strokeWidth: 5,
               ),
             ],
           ),
-        if (_currentPosition != null)
+        if (_controller.currentPosition != null)
           MarkerLayer(
             markers: [
-              if (_routePoints.isNotEmpty)
+              if (_controller.routePoints.isNotEmpty)
                 Marker(
-                  point: _routePoints.first,
+                  point: _controller.routePoints.first,
                   width: 20,
                   height: 20,
                   child: Container(
@@ -405,7 +312,7 @@ class _JoggingScreenState extends State<JoggingScreen> {
                   ),
                 ),
               Marker(
-                point: _currentPosition!,
+                point: _controller.currentPosition!,
                 width: 40,
                 height: 40,
                 child: Stack(
@@ -459,7 +366,7 @@ class _JoggingScreenState extends State<JoggingScreen> {
           _divider(),
           _statItem('Waktu', _formattedDuration, Icons.timer_outlined),
           _divider(),
-          _statItem('Kalori', '${_calories.toStringAsFixed(0)} kkal', Icons.local_fire_department_outlined),
+          _statItem('Kalori', '${_controller.calories.toStringAsFixed(0)} kkal', Icons.local_fire_department_outlined),
           _divider(),
           _statItem('Pace', '$_formattedPace/km', Icons.speed),
         ],
@@ -486,7 +393,7 @@ class _JoggingScreenState extends State<JoggingScreen> {
   }
 
   Widget _buildControls() {
-    if (!_isRunning) {
+    if (!_controller.isRunning) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: SizedBox(
@@ -498,7 +405,7 @@ class _JoggingScreenState extends State<JoggingScreen> {
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
-            onPressed: _hasPermission ? _startRun : _checkPermission,
+            onPressed: _controller.hasPermission ? _startRun : _controller.checkPermission,
             icon: const Icon(Icons.play_arrow_rounded, size: 28),
             label: const Text(
               'Mulai Lari',
@@ -516,15 +423,15 @@ class _JoggingScreenState extends State<JoggingScreen> {
           Expanded(
             child: ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: _isPaused ? limeGreen : const Color(0xFF2A2A3E),
-                foregroundColor: _isPaused ? Colors.black : white,
+                backgroundColor: _controller.isPaused ? limeGreen : const Color(0xFF2A2A3E),
+                foregroundColor: _controller.isPaused ? Colors.black : white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
-              onPressed: _isPaused ? _resumeRun : _pauseRun,
-              icon: Icon(_isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded, size: 24),
+              onPressed: _controller.isPaused ? _controller.resumeRun : _controller.pauseRun,
+              icon: Icon(_controller.isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded, size: 24),
               label: Text(
-                _isPaused ? 'Lanjut' : 'Pause',
+                _controller.isPaused ? 'Lanjut' : 'Pause',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),

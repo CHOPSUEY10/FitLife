@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import '../../core/service/phone_prefs_service.dart';
+import '../../core/service/otp_prefs_service.dart';
 import '../../features/sign_in/logic/otp_controller.dart';
 import '../components/otp_input_field.dart';
 import 'auth_wrapper.dart';
-import 'onboarding_screen.dart';
+import 'login_screen.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
-  final String phoneNumber;
+  final String email;
 
   const OtpVerificationScreen({
     super.key,
-    required this.phoneNumber,
+    required this.email,
   });
 
   @override
@@ -29,7 +29,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   }
 
   Future<void> _sendInitialOtp() async {
-    await _otpController.sendOtp(widget.phoneNumber);
+    await _otpController.sendOtp(widget.email);
     if (!mounted) return;
     _showErrorIfNeeded();
   }
@@ -47,25 +47,21 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   }
 
   Future<void> _handleVerify() async {
-    // Hide keyboard
     FocusScope.of(context).unfocus();
 
-    final success = await _otpController.verifyOtp();
+    final success = await _otpController.verifyOtp(widget.email);
     if (!mounted) return;
 
     if (success) {
-      // Persist OTP verification and clear the pending phone
-      await PhonePrefsService.setOtpVerified();
-      await PhonePrefsService.clearPhone();
+      await OtpPrefsService.setOtpVerified(true);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Verification successful!"),
+          content: Text("Verifikasi berhasil!"),
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
         ),
       );
-      // AuthWrapper now reads isOtpVerified flag → routes to OnboardingScreen
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const AuthWrapper()),
         (route) => false,
@@ -76,19 +72,29 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   }
 
   Future<void> _handleResend() async {
-    await _otpController.sendOtp(widget.phoneNumber);
+    await _otpController.sendOtp(widget.email);
     if (!mounted) return;
     
     if (_otpController.error == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("OTP has been resent!"),
+          content: Text("Kode OTP baru telah dikirim!"),
           backgroundColor: Colors.blueAccent,
           behavior: SnackBarBehavior.floating,
         ),
       );
     } else {
       _showErrorIfNeeded();
+    }
+  }
+
+  Future<void> _cancelAndLogout() async {
+    await OtpPrefsService.clearAll();
+    if (mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
     }
   }
 
@@ -122,17 +128,17 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                     return Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Icon
+                        // Logo
                         Image.asset(
                           'assets/icon/fitlife.png',
-                          width: 120,
-                          height: 120,
+                          width: 100,
+                          height: 100,
                         ),
                         const SizedBox(height: 32),
                         
                         // Title
                         const Text(
-                          "OTP Verification",
+                          "Verifikasi OTP",
                           style: TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
@@ -143,10 +149,10 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                         
                         // Subtitle
                         Text(
-                          "Enter the 6-digit code sent to\n${widget.phoneNumber}",
+                          "Masukkan 6 digit kode OTP yang dikirim ke email Anda:\n${widget.email}",
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: 15,
                             color: Colors.white70,
                             height: 1.5,
                           ),
@@ -162,25 +168,28 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                         ),
                         const SizedBox(height: 32),
                         
-                        // Timer & Resend
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        // Timer & Resend (using Wrap to prevent horizontal overflow)
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             Text(
                               _otpController.countdown > 0 
-                                  ? "Resend code in ${_otpController.countdown}s"
-                                  : "Didn't receive the code?",
-                              style: const TextStyle(color: Colors.white70),
+                                  ? "Kirim ulang kode dalam ${_otpController.countdown}s"
+                                  : "Tidak menerima kode?",
+                              style: const TextStyle(color: Colors.white70, fontSize: 14),
                             ),
                             if (_otpController.canResend) ...[
-                              const SizedBox(width: 8),
                               GestureDetector(
                                 onTap: _otpController.isLoading ? null : _handleResend,
                                 child: const Text(
-                                  "Resend",
+                                  "Kirim Ulang",
                                   style: TextStyle(
                                     color: Colors.blueAccent,
                                     fontWeight: FontWeight.bold,
+                                    decoration: TextDecoration.underline,
                                   ),
                                 ),
                               ),
@@ -192,15 +201,16 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                         // Verify Button
                         SizedBox(
                           width: double.infinity,
-                          height: 55,
+                          height: 52,
                           child: ElevatedButton(
                             onPressed: _otpController.isLoading || _otpController.otpCode.length != 6
                                 ? null
                                 : _handleVerify,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blueAccent,
+                              backgroundColor: const Color(0xFFC6FF00), // Lime Green
+                              foregroundColor: Colors.black,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(12),
                               ),
                               elevation: 2,
                             ),
@@ -209,18 +219,31 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                                     height: 24,
                                     width: 24,
                                     child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
+                                      color: Colors.black,
+                                      strokeWidth: 2.5,
                                     ),
                                   )
                                 : const Text(
-                                    "Verify",
+                                    "Verifikasi",
                                     style: TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.white,
                                     ),
                                   ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        
+                        // Back Button
+                        TextButton(
+                          onPressed: _cancelAndLogout,
+                          child: const Text(
+                            "Kembali ke Login",
+                            style: TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],

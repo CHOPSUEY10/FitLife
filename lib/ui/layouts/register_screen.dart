@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/service/auth_service.dart';
-import '../../core/service/phone_prefs_service.dart';
 import '../components/auth_text_field.dart';
 import '../components/glass_container.dart';
 import 'login_screen.dart';
 import 'auth_wrapper.dart';
-import 'otp_verification_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -19,7 +17,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final AuthService _authService = AuthService();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _iAgree = false;
   bool _isLoading = false;
@@ -43,15 +40,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _registerManually() async {
     if (_emailController.text.isEmpty ||
-        _passwordController.text.isEmpty ||
-        _phoneController.text.isEmpty) {
+        _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill out all fields')));
-      return;
-    }
-    // Basic phone format validation
-    final phone = _phoneController.text.trim();
-    if (!phone.startsWith('+') || phone.length < 8) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a valid phone number with country code (e.g. +628123456789)')));
       return;
     }
     if (!_iAgree) {
@@ -64,16 +54,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final user = await _authService.registerWithEmailPassword(
         _emailController.text.trim(),
         _passwordController.text.trim(),
+        username: _usernameController.text.trim(),
       );
       if (user != null && mounted) {
-        // Persist phone number so AuthWrapper can retrieve it on app restart
-        await PhonePrefsService.savePhone(_phoneController.text.trim());
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => OtpVerificationScreen(
-              phoneNumber: _phoneController.text.trim(),
-            ),
-          ),
+          MaterialPageRoute(builder: (_) => const AuthWrapper()),
         );
       }
     } catch (e) {
@@ -131,7 +116,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const SizedBox(height: 24),
                           AuthTextField(hint: 'Username', controller: _usernameController),
                           AuthTextField(hint: 'Email', controller: _emailController),
-                          AuthTextField(hint: 'Phone Number (+628...)', controller: _phoneController, keyboardType: TextInputType.phone),
                           AuthTextField(hint: 'Password', isPassword: true, controller: _passwordController),
                           
                           // I Agree

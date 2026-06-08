@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../../core/database/local_db_helper.dart';
 import '../../../core/models/aktifitas_harian_model.dart';
+import '../../../core/models/target_harian_model.dart';
 import '../../workout/logic/workout_logic.dart';
 import '../../step_tracker/logic/step_tracker_logic.dart';
 
@@ -12,6 +13,9 @@ class DashboardController extends ChangeNotifier {
   double _todayCalories = 0.0;
   List<AktifitasHarianModel> _todayWorkouts = [];
   
+  int _targetLangkah = 8000;
+  double _targetKalori = 500.0;
+
   final StepTrackerLogic _stepTracker = StepTrackerLogic();
   int _currentSteps = 0;
   StreamSubscription<int>? _stepSubscription;
@@ -21,12 +25,16 @@ class DashboardController extends ChangeNotifier {
   double get todayCalories => _todayCalories;
   List<AktifitasHarianModel> get todayWorkouts => _todayWorkouts;
   int get currentSteps => _currentSteps;
+  
+  int get targetLangkah => _targetLangkah;
+  double get targetKalori => _targetKalori;
 
   DashboardController() {
     _startTimer();
     _fetchUsername();
     fetchTodayCalories();
     fetchTodayWorkouts();
+    fetchTargetHarian();
     _initStepTracker();
   }
 
@@ -66,6 +74,26 @@ class DashboardController extends ChangeNotifier {
     final today = DateTime.now().toIso8601String().substring(0, 10);
     _todayWorkouts = await LocalDBHelper.instance.getAktifitasHarianByDate(today);
     notifyListeners();
+  }
+
+  /// Fetch dynamic workout target harian from SQLite database
+  Future<void> fetchTargetHarian() async {
+    try {
+      final target = await LocalDBHelper.instance.getTargetHarian();
+      _targetLangkah = target.targetLangkah;
+      _targetKalori = target.targetKalori;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('DashboardController fetchTargetHarian error: $e');
+    }
+  }
+
+  /// Refresh all data displayed on dashboard
+  Future<void> refreshData() async {
+    await _fetchUsername();
+    await fetchTodayCalories();
+    await fetchTodayWorkouts();
+    await fetchTargetHarian();
   }
 
   void _startTimer() {

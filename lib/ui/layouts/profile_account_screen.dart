@@ -2,16 +2,20 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../features/dashboard/logic/settings_controller.dart';
+import '../../features/profile/logic/profile_account_controller.dart';
+import '../components/update_email_form.dart';
+import '../components/update_password_form.dart';
 
-class SettingsProfilScreen extends StatefulWidget {
-  const SettingsProfilScreen({Key? key}) : super(key: key);
+class ProfileAccountScreen extends StatefulWidget {
+  const ProfileAccountScreen({Key? key}) : super(key: key);
 
   @override
-  State<SettingsProfilScreen> createState() => _SettingsProfilScreenState();
+  State<ProfileAccountScreen> createState() => _ProfileAccountScreenState();
 }
 
-class _SettingsProfilScreenState extends State<SettingsProfilScreen> {
+class _ProfileAccountScreenState extends State<ProfileAccountScreen> {
   static const Color bgColor = Color(0xFF0F0C1B);
   static const Color cardColor = Color(0xFF1A1A2E);
   static const Color limeGreen = Color(0xFFC6FF00);
@@ -20,7 +24,8 @@ class _SettingsProfilScreenState extends State<SettingsProfilScreen> {
   static const Color borderColor = Color(0xFF2A2A3E);
 
   final _formKey = GlobalKey<FormState>();
-  late final SettingsController _controller;
+  late final SettingsController _settingsController;
+  late final ProfileAccountController _accountController;
   final _namaController = TextEditingController();
   final _tglLahirController = TextEditingController();
   String _jenisKelamin = 'Pria';
@@ -32,12 +37,13 @@ class _SettingsProfilScreenState extends State<SettingsProfilScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = SettingsController();
+    _settingsController = SettingsController();
+    _accountController = ProfileAccountController();
     _initData();
   }
 
   Future<void> _initData() async {
-    await _controller.loadAll();
+    await _settingsController.loadAll();
     
     // Load image path from SharedPreferences
     final prefs = await SharedPreferences.getInstance();
@@ -45,9 +51,9 @@ class _SettingsProfilScreenState extends State<SettingsProfilScreen> {
     
     if (mounted) {
       setState(() {
-        _namaController.text = _controller.nama;
-        _tglLahirController.text = _controller.tanggalLahir;
-        _jenisKelamin = _controller.jenisKelamin;
+        _namaController.text = _settingsController.nama;
+        _tglLahirController.text = _settingsController.tanggalLahir;
+        _jenisKelamin = _settingsController.jenisKelamin;
         if (savedImagePath != null && savedImagePath.isNotEmpty) {
           _imageFile = File(savedImagePath);
         }
@@ -60,6 +66,7 @@ class _SettingsProfilScreenState extends State<SettingsProfilScreen> {
   void dispose() {
     _namaController.dispose();
     _tglLahirController.dispose();
+    _accountController.dispose();
     super.dispose();
   }
 
@@ -126,7 +133,7 @@ class _SettingsProfilScreenState extends State<SettingsProfilScreen> {
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      await _controller.saveProfil(
+      await _settingsController.saveProfil(
         namaBaru: _namaController.text.trim(),
         tanggalLahirBaru: _tglLahirController.text.trim(),
         jenisKelaminBaru: _jenisKelamin,
@@ -144,8 +151,33 @@ class _SettingsProfilScreenState extends State<SettingsProfilScreen> {
     }
   }
 
+  void _showUpdateEmailModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => UpdateEmailForm(controller: _accountController),
+    ).then((_) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  void _showUpdatePasswordModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => UpdatePasswordForm(controller: _accountController),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final isGoogleUser = user?.providerData.any((info) => info.providerId == 'google.com') ?? false;
+
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
@@ -156,7 +188,7 @@ class _SettingsProfilScreenState extends State<SettingsProfilScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'Profil Identitas',
+          'Profil dan Akun',
           style: TextStyle(color: white, fontWeight: FontWeight.bold, fontSize: 20),
         ),
         centerTitle: true,
@@ -325,6 +357,90 @@ class _SettingsProfilScreenState extends State<SettingsProfilScreen> {
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 32),
+                    const Text(
+                      'Keamanan Akun',
+                      style: TextStyle(
+                        color: white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: cardColor,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: borderColor),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Email',
+                                      style: TextStyle(color: grey, fontSize: 12),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      FirebaseAuth.instance.currentUser?.email ?? 'Tidak terhubung',
+                                      style: const TextStyle(color: white, fontSize: 15, fontWeight: FontWeight.w500),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: _showUpdateEmailModal,
+                                style: TextButton.styleFrom(
+                                  foregroundColor: limeGreen,
+                                  textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                child: const Text('Ubah'),
+                              ),
+                            ],
+                          ),
+                          const Divider(color: borderColor, height: 24),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Kata Sandi',
+                                      style: TextStyle(color: grey, fontSize: 12),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      isGoogleUser ? 'Masuk dengan Google (tidak dapat diubah)' : '••••••••',
+                                      style: const TextStyle(color: white, fontSize: 15, fontWeight: FontWeight.w500),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (!isGoogleUser)
+                                TextButton(
+                                  onPressed: _showUpdatePasswordModal,
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: limeGreen,
+                                    textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  child: const Text('Ubah'),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 40),
                     SizedBox(

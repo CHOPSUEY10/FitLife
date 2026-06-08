@@ -4,13 +4,10 @@ import '../components/stats_card.dart';
 import '../components/map_placeholder_card.dart';
 import '../components/workout_card.dart';
 import '../components/profile_avatar.dart';
-import 'add_activity_screen.dart';
 import 'abs_workout_screen.dart';
 import 'chest_workout_screen.dart';
 import 'arm_workout_screen.dart';
 import 'leg_workout_screen.dart';
-import 'activity_list_screen.dart';
-import 'settings_screen.dart';
 import 'jogging_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -22,7 +19,6 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   late final DashboardController _controller;
-  String _selectedCategory = 'All Workouts';
 
   // Workout items tagged by category
   final List<Map<String, dynamic>> _workoutItems = [
@@ -69,7 +65,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     
     // Create a set of assigned workout category names, in lowercase for loose matching
     final assignedNames = _controller.todayWorkouts
-        .map((w) => (w.idJenisAktifitas ?? '').toLowerCase())
+        .map((w) => w.idJenisAktifitas.toLowerCase())
         .toSet();
 
     // Filter our hardcoded cards by checking if their titles match the assigned names
@@ -99,13 +95,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context,
       MaterialPageRoute(builder: (_) => screen),
     ).then((_) {
-      _controller.fetchTodayCalories();
-      _controller.fetchTodayWorkouts();
+      _controller.refreshData();
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Refresh metrics on build to keep it up to date with DB changes from settings tab
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.refreshData();
+    });
+
     return Scaffold(
       backgroundColor: const Color(0xFF0F0C1B),
       body: SafeArea(
@@ -164,57 +164,84 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       children: [
                         Expanded(
                           flex: 1,
-                          child: Column(
-                            children: [
-                              StatsCard(
-                                title: 'Steps',
-                                value: '${_controller.currentSteps}/2000',
-                                backgroundColor: const Color(0xFFC6FF00),
-                                titleColor: Colors.black,
-                                valueColor: Colors.black,
-                                iconPath: 'assets/icon/step.png',
-                                customProgress: LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    final progress = (_controller.currentSteps / 2000).clamp(0.0, 1.0);
-                                    return Stack(
-                                      children: [
-                                        Container(
-                                          height: 8,
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.circular(4),
-                                          ),
-                                        ),
-                                        Container(
-                                          height: 8,
-                                          width: constraints.maxWidth * progress,
-                                          decoration: BoxDecoration(
-                                            color: Colors.black,
-                                            borderRadius: BorderRadius.circular(4),
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  }
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              // Dynamic Calorie Card
-                              AnimatedBuilder(
-                                animation: _controller,
-                                builder: (context, child) {
-                                  final cal = _controller.todayCalories;
-                                  return StatsCard(
+                          child: AnimatedBuilder(
+                            animation: _controller,
+                            builder: (context, child) {
+                              final cal = _controller.todayCalories;
+                              final stepsTarget = _controller.targetLangkah;
+                              final calTarget = _controller.targetKalori;
+
+                              return Column(
+                                children: [
+                                  StatsCard(
+                                    title: 'Steps',
+                                    value: '${_controller.currentSteps}/$stepsTarget',
+                                    backgroundColor: const Color(0xFFC6FF00),
+                                    titleColor: Colors.black,
+                                    valueColor: Colors.black,
+                                    iconPath: 'assets/icon/step.png',
+                                    customProgress: LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        final progress = (_controller.currentSteps / stepsTarget).clamp(0.0, 1.0);
+                                        return Stack(
+                                          children: [
+                                            Container(
+                                              height: 8,
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                            ),
+                                            Container(
+                                              height: 8,
+                                              width: constraints.maxWidth * progress,
+                                              decoration: BoxDecoration(
+                                                color: Colors.black,
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      }
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  // Dynamic Calorie Card with progress bar
+                                  StatsCard(
                                     title: 'Kalori Terbakar',
-                                    value: '${cal.toInt()} kkal',
+                                    value: '${cal.toInt()}/${calTarget.toInt()} kkal',
                                     backgroundColor: Colors.white,
                                     titleColor: Colors.grey,
                                     valueColor: Colors.black,
                                     iconPath: 'assets/icon/stat.png',
-                                  );
-                                },
-                              ),
-                            ],
+                                    customProgress: LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        final progress = (cal / calTarget).clamp(0.0, 1.0);
+                                        return Stack(
+                                          children: [
+                                            Container(
+                                              height: 8,
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey[300],
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                            ),
+                                            Container(
+                                              height: 8,
+                                              width: constraints.maxWidth * progress,
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFC6FF00),
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      }
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -276,34 +303,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFilterChip(String label) {
-    final bool isSelected = _selectedCategory == label;
-    return GestureDetector(
-      onTap: () {
-        setState(() => _selectedCategory = label);
-      },
-      child: Container(
-        margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFC6FF00) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? const Color(0xFFC6FF00) : Colors.grey,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.black : Colors.white,
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-          ),
         ),
       ),
     );

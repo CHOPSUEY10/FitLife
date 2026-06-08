@@ -23,3 +23,12 @@ class InvalidOtpFailure extends Failure {
 class ExpiredOtpFailure extends Failure {
   ExpiredOtpFailure([super.message = "Expired OTP"]);
 }
+
+// Khusus untuk error autentikasi dan akun
+class AuthFailure extends Failure {
+  AuthFailure(super.message);
+}
+
+class RequiresRecentLoginFailure extends AuthFailure {
+  RequiresRecentLoginFailure([super.message = "Sesi Anda memerlukan verifikasi ulang untuk alasan keamanan."]);
+}

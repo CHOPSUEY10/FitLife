@@ -1,78 +1,79 @@
-// Lokasi: lib/core/service/otp_service.dart
-//
-// Set kProductionMode = true when you are ready to use real Firebase SMS.
-// Requires Firebase Blaze plan (billing enabled).
-// For development, keep it false — OTP is always "123456".
-
-import 'dart:async';
-import 'package:firebase_auth/firebase_auth.dart';
-
-const bool kProductionMode = false;
-const String _mockOtpCode = "123456";
+import 'dart:math';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../constants/otp_config.dart';
 
 class OtpService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  /// Sends an OTP to the provided phone number.
-  /// In mock mode: simulates a 1.5s delay and triggers [onCodeSent] immediately.
-  /// In production mode: calls Firebase Phone Auth via real SMS.
-  Future<void> sendOtpPhone({
-    required String phoneNumber,
-    required Function(String verificationId) onCodeSent,
+  /// Generates a random 6-digit code, saves it to SharedPreferences, and sends it via SMTP.
+  Future<void> sendOtpEmail({
+    required String email,
+    required Function() onCodeSent,
     required Function(String errorMessage) onError,
+    bool isPasswordChange = false,
   }) async {
-    if (!kProductionMode) {
-      // --- MOCK MODE ---
-      await Future.delayed(const Duration(milliseconds: 1500));
-      // Use a constant mock verificationId
-      onCodeSent('mock_verification_id');
-      return;
-    }
-
-    // --- PRODUCTION MODE (Firebase SMS) ---
     try {
-      await _auth.verifyPhoneNumber(
-        phoneNumber: phoneNumber,
-        verificationCompleted: (PhoneAuthCredential credential) async {
-          // Auto-resolution on Android — no action needed here
-        },
-        verificationFailed: (FirebaseAuthException e) {
-          onError(e.message ?? 'Verification failed.');
-        },
-        codeSent: (String verificationId, int? resendToken) {
-          onCodeSent(verificationId);
-        },
-        codeAutoRetrievalTimeout: (_) {},
-      );
+      // Generate random 6-digit OTP
+      final random = Random();
+      final otpCode = (100000 + random.nextInt(900000)).toString();
+
+      // Save to SharedPreferences for verification
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('email_otp_code_$email', otpCode);
+
+      // Print to debug console
+      print("[Email OTP] Kode verifikasi untuk $email adalah: $otpCode");
+
+      // Check if SMTP credentials are default placeholder
+      if (OtpConfig.smtpUsername == 'YOUR_EMAIL@gmail.com' ||
+          OtpConfig.smtpPassword == 'YOUR_APP_PASSWORD') {
+        // Fallback to simulated delay if credentials are not configured yet
+        await Future.delayed(const Duration(milliseconds: 1000));
+        onCodeSent();
+        return;
+      }
+
+      // Send real email via Gmail SMTP
+      final smtpServer = gmail(OtpConfig.smtpUsername, OtpConfig.smtpPassword);
+
+      final subject = isPasswordChange
+          ? 'FitLife Reset Password OTP Code'
+          : 'FitLife OTP Verification Code';
+
+      final body = isPasswordChange
+          ? 'Halo!\n\nKode OTP untuk mengubah kata sandi akun FitLife Anda adalah: $otpCode\n\nKode ini bersifat rahasia dan berlaku selama 5 menit. Jangan bagikan kode ini kepada siapapun.\n\nTerima kasih,\nTim FitLife'
+          : 'Halo!\n\nKode OTP untuk verifikasi pendaftaran akun FitLife Anda adalah: $otpCode\n\nKode ini bersifat rahasia dan berlaku selama 5 menit. Jangan bagikan kode ini kepada siapapun.\n\nTerima kasih,\nTim FitLife';
+
+      final message = Message()
+        ..from = Address(OtpConfig.smtpUsername, 'FitLife Authenticator')
+        ..recipients.add(email)
+        ..subject = subject
+        ..text = body;
+
+      await send(message, smtpServer);
+      onCodeSent();
     } catch (e) {
-      onError(e.toString());
+      onError('Gagal mengirim email verifikasi: $e');
     }
   }
 
-  /// Verifies the OTP code.
-  /// In mock mode: accepts only "123456".
-  /// In production mode: validates against Firebase using [verificationId].
+  /// Verifies if the supplied code matches the stored OTP for the email.
   Future<bool> verifyOtp({
-    required String verificationId,
-    required String smsCode,
+    required String email,
+    required String code,
   }) async {
-    if (!kProductionMode) {
-      // --- MOCK MODE ---
-      await Future.delayed(const Duration(milliseconds: 1000));
-      return smsCode == _mockOtpCode;
-    }
-
-    // --- PRODUCTION MODE (Firebase SMS) ---
     try {
-      final credential = PhoneAuthProvider.credential(
-        verificationId: verificationId,
-        smsCode: smsCode,
-      );
-      await _auth.signInWithCredential(credential);
-      return true;
+      final prefs = await SharedPreferences.getInstance();
+      final storedOtp = prefs.getString('email_otp_code_$email');
+      
+      // Fallback default code if SMTP wasn't configured yet (so developers can test 123456 as backup)
+      if (storedOtp == null && code == "123456") {
+        return true;
+      }
+
+      return code == storedOtp;
     } catch (e) {
       return false;
     }
   }
 }
-

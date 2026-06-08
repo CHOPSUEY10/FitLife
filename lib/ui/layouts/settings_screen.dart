@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import '../components/profile_avatar.dart';
 import '../../features/dashboard/logic/settings_controller.dart';
-import 'settings_profil_screen.dart';
+import '../../core/service/auth_service.dart';
+import 'profile_account_screen.dart';
 import 'settings_data_fisik_screen.dart';
 import 'settings_tujuan_screen.dart';
-import 'settings_preferensi_screen.dart';
 import 'settings_waktu_luang_screen.dart';
 import 'settings_level_aktifitas_screen.dart';
 import 'settings_target_harian_screen.dart';
 import 'settings_notifikasi_screen.dart';
 import 'settings_umum_screen.dart';
+import 'auth_wrapper.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -20,11 +21,11 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   static const Color bgColor = Color(0xFF0F0C1B);
-  static const Color cardColor = Color(0xFF1A1A2E);
   static const Color limeGreen = Color(0xFFC6FF00);
   static const Color white = Colors.white;
   static const Color grey = Color(0xFF888888);
   static const Color borderColor = Color(0xFF2A2A3E);
+  static const Color cardColor = Color(0xFF1A1A2E);
 
   String _activeItem = '';
   late final SettingsController _controller;
@@ -32,8 +33,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   final List<Map<String, dynamic>> _sections = [
     {'title': 'Identitas dan Tujuan', 'items': ['Profil', 'Data Fisik', 'Tujuan']},
-    {'title': 'Personalisasi Aktivitas', 'items': ['Preferensi Aktivitas', 'Waktu Luang', 'Level Aktivitas']},
+    {'title': 'Personalisasi Aktivitas', 'items': ['Waktu Luang', 'Level Aktivitas']},
     {'title': 'Kontrol & Sistem', 'items': ['Target harian', 'Notifikasi', 'Pengaturan Umum']},
+    {'title': 'Sesi Akun', 'items': ['Keluar']},
   ];
 
   @override
@@ -55,19 +57,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _navigateToSubScreen(String label) async {
     if (_activeItem.isNotEmpty) return; // Prevent double taps
     setState(() => _activeItem = label);
+
+    if (label == 'Keluar') {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: cardColor,
+          title: const Text('Keluar Akun', style: TextStyle(color: white, fontWeight: FontWeight.bold)),
+          content: const Text('Apakah Anda yakin ingin keluar dari akun Anda?', style: TextStyle(color: grey)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Batal', style: TextStyle(color: grey)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Keluar', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      );
+
+      if (confirm == true) {
+        await AuthService().signOut();
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const AuthWrapper()),
+            (route) => false,
+          );
+        }
+      } else {
+        if (mounted) {
+          setState(() => _activeItem = '');
+        }
+      }
+      return;
+    }
+
     Widget screen;
     switch (label) {
       case 'Profil':
-        screen = const SettingsProfilScreen();
+        screen = const ProfileAccountScreen();
         break;
       case 'Data Fisik':
         screen = const SettingsDataFisikScreen();
         break;
       case 'Tujuan':
         screen = const SettingsTujuanScreen();
-        break;
-      case 'Preferensi Aktivitas':
-        screen = const SettingsPreferensiScreen();
         break;
       case 'Waktu Luang':
         screen = const SettingsWaktuLuangScreen();
@@ -160,6 +196,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildSettingItem(String label) {
     final isActive = _activeItem == label;
+    final isLogout = label == 'Keluar';
     return GestureDetector(
       onTap: () => _navigateToSubScreen(label),
       child: AnimatedContainer(
@@ -168,15 +205,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         decoration: BoxDecoration(
-          color: isActive ? limeGreen : Colors.transparent,
+          color: isActive ? (isLogout ? Colors.redAccent : limeGreen) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isActive ? limeGreen : borderColor, width: 1.5),
+          border: Border.all(color: isActive ? (isLogout ? Colors.redAccent : limeGreen) : borderColor, width: 1.5),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: TextStyle(color: isActive ? Colors.black : white, fontSize: 15, fontWeight: isActive ? FontWeight.bold : FontWeight.normal)),
-            Icon(Icons.chevron_right, color: isActive ? Colors.black : grey, size: 20),
+            Text(
+              label,
+              style: TextStyle(
+                color: isActive ? Colors.black : (isLogout ? Colors.redAccent : white),
+                fontSize: 15,
+                fontWeight: (isActive || isLogout) ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+            Icon(
+              isLogout ? Icons.logout : Icons.chevron_right,
+              color: isActive ? Colors.black : (isLogout ? Colors.redAccent : grey),
+              size: 20,
+            ),
           ],
         ),
       ),

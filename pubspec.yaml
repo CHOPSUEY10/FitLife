@@ -47,6 +47,7 @@ dependencies:
   pedometer: ^4.0.1
   permission_handler: ^11.3.1
   image_picker: ^1.1.2
+  mailer: ^7.1.0
 
 dev_dependencies:
   flutter_test:
@@ -83,6 +84,7 @@ flutter:
     - assets/background/
     - assets/icon/
     - assets/illustration/
+    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
