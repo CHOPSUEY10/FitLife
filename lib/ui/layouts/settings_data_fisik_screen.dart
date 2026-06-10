@@ -152,10 +152,10 @@ class _SettingsDataFisikScreenState extends State<SettingsDataFisikScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                             decoration: BoxDecoration(
                               color: _bmiKategori == 'Normal'
-                                  ? Colors.green.withOpacity(0.2)
+                                  ? Colors.green.withValues(alpha: 0.2)
                                   : _bmiKategori == 'Kurus'
-                                      ? Colors.orange.withOpacity(0.2)
-                                      : Colors.red.withOpacity(0.2),
+                                      ? Colors.orange.withValues(alpha: 0.2)
+                                      : Colors.red.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(

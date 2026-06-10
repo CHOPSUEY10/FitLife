@@ -121,7 +121,7 @@ class _OnboardingFormState extends State<OnboardingForm> {
 
   Widget _buildDropdown() {
     return DropdownButtonFormField<String>(
-      value: _selectedGender,
+      initialValue: _selectedGender,
       onChanged: (String? newValue) {
         setState(() {
           _selectedGender = newValue;

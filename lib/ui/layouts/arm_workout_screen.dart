@@ -221,7 +221,7 @@ class _ArmWorkoutScreenState extends State<ArmWorkoutScreen>
         const SizedBox(height: 12),
         Text(exercise['description'], style: const TextStyle(color: Colors.white60, fontSize: 13, height: 1.5)),
         const SizedBox(height: 10),
-        Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), decoration: BoxDecoration(color: const Color(0xFF1A1630), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFC6FF00).withOpacity(0.3))), child: Row(children: [const Icon(Icons.lightbulb_outline, color: Color(0xFFC6FF00), size: 16), const SizedBox(width: 8), Expanded(child: Text(exercise['tip'], style: const TextStyle(color: Colors.white70, fontSize: 12)))])),
+        Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), decoration: BoxDecoration(color: const Color(0xFF1A1630), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFC6FF00).withValues(alpha: 0.3))), child: Row(children: [const Icon(Icons.lightbulb_outline, color: Color(0xFFC6FF00), size: 16), const SizedBox(width: 8), Expanded(child: Text(exercise['tip'], style: const TextStyle(color: Colors.white70, fontSize: 12)))])),
         const Spacer(),
         Row(mainAxisAlignment: MainAxisAlignment.center, children: List.generate(_exercises.length, (i) => Container(margin: const EdgeInsets.symmetric(horizontal: 3), width: i == _currentIndex ? 20 : 8, height: 8, decoration: BoxDecoration(color: i <= _currentIndex ? const Color(0xFFC6FF00) : const Color(0xFF2A2545), borderRadius: BorderRadius.circular(4))))),
         const SizedBox(height: 16),

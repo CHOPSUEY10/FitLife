@@ -78,8 +78,8 @@ class WorkoutLogic {
         tanggal: existingSchedule.tanggal,
         idJenisAktifitas: dbCategory,
         // If it's a schedule (kalori == 0), replace it. Otherwise, add to it.
-        totalKalori: (existingSchedule.totalKalori == 0) ? totalKalori : ((existingSchedule.totalKalori ?? 0) + totalKalori),
-        durasiLatihan: (existingSchedule.durasiLatihan == 0) ? durasiLatihan : ((existingSchedule.durasiLatihan ?? 0) + durasiLatihan),
+        totalKalori: (existingSchedule.totalKalori == 0) ? totalKalori : (existingSchedule.totalKalori + totalKalori),
+        durasiLatihan: (existingSchedule.durasiLatihan == 0) ? durasiLatihan : (existingSchedule.durasiLatihan + durasiLatihan),
         pace: pace ?? existingSchedule.pace,
         jarakTempuh: jarakTempuh ?? existingSchedule.jarakTempuh,
       );

@@ -254,8 +254,8 @@ class _SettingsNotifikasiScreenState extends State<SettingsNotifikasiScreen> {
           ),
           Switch(
             value: value,
-            activeColor: limeGreen,
-            activeTrackColor: limeGreen.withOpacity(0.3),
+            activeThumbColor: limeGreen,
+            activeTrackColor: limeGreen.withValues(alpha: 0.3),
             inactiveThumbColor: grey,
             inactiveTrackColor: cardColor,
             onChanged: onChanged,

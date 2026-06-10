@@ -437,6 +437,32 @@ class LocalDBHelper {
     return maps.map((m) => AktifitasHarianModel.fromMap(m)).toList();
   }
 
+  Future<List<Map<String, dynamic>>> getWeeklyWorkoutLogs() async {
+    final db = await instance.database;
+    final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7)).toIso8601String().substring(0, 10);
+
+    // Using a virtual table WITH clause to join since jenis_aktifitas table was dropped
+    final result = await db.rawQuery('''
+      WITH jenis_aktifitas AS (
+        SELECT id_jenis_aktifitas, nama_aktifitas, MET_aktifitas FROM arm_workout
+        UNION ALL
+        SELECT id_jenis_aktifitas, nama_aktifitas, MET_aktifitas FROM chest_workout
+        UNION ALL
+        SELECT id_jenis_aktifitas, nama_aktifitas, MET_aktifitas FROM leg_workout
+        UNION ALL
+        SELECT id_jenis_aktifitas, nama_aktifitas, MET_aktifitas FROM abs_workout
+        UNION ALL
+        SELECT id_jenis_aktifitas, nama_aktifitas, MET_aktifitas FROM cardio
+      )
+      SELECT a.*, j.nama_aktifitas, j.MET_aktifitas 
+      FROM aktifitas_harian a
+      LEFT JOIN jenis_aktifitas j ON a.id_jenis_aktifitas = j.id_jenis_aktifitas
+      WHERE a.tanggal >= ? AND a.user_id = ?
+    ''', [sevenDaysAgo, _getCurrentUserId()]);
+
+    return result;
+  }
+
   Future<void> close() async {
     final db = await instance.database;
     db.close();

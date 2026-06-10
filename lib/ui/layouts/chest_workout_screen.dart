@@ -514,7 +514,7 @@ class _ChestWorkoutScreenState extends State<ChestWorkoutScreen>
                     color: const Color(0xFF1A1630),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: const Color(0xFFC6FF00).withOpacity(0.3),
+                      color: const Color(0xFFC6FF00).withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(

@@ -18,7 +18,9 @@ class LocationLogic {
   Future<LatLng?> getCurrentLocation() async {
     try {
       final pos = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
       return LatLng(pos.latitude, pos.longitude);
     } catch (_) {

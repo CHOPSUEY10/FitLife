@@ -9,6 +9,7 @@ import 'chest_workout_screen.dart';
 import 'arm_workout_screen.dart';
 import 'leg_workout_screen.dart';
 import 'jogging_screen.dart';
+import '../../features/sync/logic/sync_controller.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -82,6 +83,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     _controller = DashboardController();
+    
+    // Run weekly sync silently in background
+    SyncController.instance.runWeeklySync();
   }
 
   @override

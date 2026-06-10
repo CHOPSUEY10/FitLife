@@ -16,7 +16,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   final OnboardingLogic _logic = OnboardingLogic();
   int _currentPage = 0;
-  String? _selectedWaktuLuang;
   String _selectedLevel = 'Pemula';
 
   // Colors based on user specs
@@ -88,21 +87,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildBackground(String imageUrl) {
-    return Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: NetworkImage(imageUrl),
-          fit: BoxFit.cover,
-          colorFilter: ColorFilter.mode(
-            Colors.black.withOpacity(0.6),
-            BlendMode.darken,
-          ),
-        ),
       ),
     );
   }
@@ -260,7 +244,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           margin: const EdgeInsets.only(bottom: 16),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: isSelected ? primaryGreen.withOpacity(0.15) : const Color(0xFF1A1A2E).withOpacity(0.8),
+                            color: isSelected ? primaryGreen.withValues(alpha: 0.15) : const Color(0xFF1A1A2E).withValues(alpha: 0.8),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: isSelected ? primaryGreen : const Color(0xFF2A2A3E),
@@ -296,7 +280,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                     Text(
                                       lvl['intensity']!,
                                       style: TextStyle(
-                                        color: isSelected ? primaryGreen.withOpacity(0.9) : primaryGreen,
+                                        color: isSelected ? primaryGreen.withValues(alpha: 0.9) : primaryGreen,
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -351,37 +335,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildLabel(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Text(
-        text,
-        style: GoogleFonts.allerta(fontSize: 16, color: Colors.white),
-      ),
-    );
-  }
-
-  Widget _buildTextField(String hint, bool hasDropdown) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: whiteColor,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            hint,
-            style: GoogleFonts.allerta(fontSize: 16, color: Colors.black54),
-          ),
-          if (hasDropdown)
-            const Icon(Icons.keyboard_arrow_down, color: Colors.blueAccent),
-        ],
-      ),
     );
   }
 

@@ -203,7 +203,7 @@ class _JoggingScreenState extends State<JoggingScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: _controller.isRunning && !_controller.isPaused ? limeGreen.withOpacity(0.15) : cardColor,
+              color: _controller.isRunning && !_controller.isPaused ? limeGreen.withValues(alpha: 0.15) : cardColor,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: _controller.isRunning && !_controller.isPaused ? limeGreen : const Color(0xFF2A2A3E),
@@ -322,7 +322,7 @@ class _JoggingScreenState extends State<JoggingScreen> {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: limeGreen.withOpacity(0.25),
+                        color: limeGreen.withValues(alpha: 0.25),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -335,7 +335,7 @@ class _JoggingScreenState extends State<JoggingScreen> {
                         border: Border.all(color: Colors.white, width: 2),
                         boxShadow: [
                           BoxShadow(
-                            color: limeGreen.withOpacity(0.5),
+                            color: limeGreen.withValues(alpha: 0.5),
                             blurRadius: 8,
                           ),
                         ],

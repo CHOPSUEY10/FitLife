@@ -124,7 +124,7 @@ class _SettingsWaktuLuangScreenState extends State<SettingsWaktuLuangScreen> {
                           margin: const EdgeInsets.only(bottom: 14),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: isSelected ? limeGreen.withOpacity(0.1) : cardColor,
+                            color: isSelected ? limeGreen.withValues(alpha: 0.1) : cardColor,
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
                               color: isSelected ? limeGreen : borderColor,

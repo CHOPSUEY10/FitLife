@@ -25,7 +25,7 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
   List<AktifitasHarianModel> _dailyActivities = [];
   Set<int> _activeDays = {};
 
-  double get _burnedCalories => _dailyActivities.fold(0.0, (sum, item) => sum + (item.totalKalori ?? 0));
+  double get _burnedCalories => _dailyActivities.fold(0.0, (sum, item) => sum + item.totalKalori);
 
   @override
   void initState() {
@@ -189,7 +189,7 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
                 width: 32, height: 32,
                 margin: const EdgeInsets.symmetric(vertical: 2),
                 decoration: BoxDecoration(
-                  color: isSelected ? limeGreen : (hasSchedule ? limeGreen.withOpacity(0.3) : Colors.transparent),
+                  color: isSelected ? limeGreen : (hasSchedule ? limeGreen.withValues(alpha: 0.3) : Colors.transparent),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -212,8 +212,8 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
 
   Widget _buildActivityItem(AktifitasHarianModel activity) {
     IconData iconData = Icons.fitness_center;
-    if (activity.idJenisAktifitas?.toLowerCase().contains('lari') == true || 
-        activity.idJenisAktifitas?.toLowerCase().contains('cardio') == true) {
+    if (activity.idJenisAktifitas.toLowerCase().contains('lari') || 
+        activity.idJenisAktifitas.toLowerCase().contains('cardio')) {
       iconData = Icons.directions_run;
     }
 
@@ -225,17 +225,17 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
         children: [
           Container(
             width: 36, height: 36,
-            decoration: BoxDecoration(color: limeGreen.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+            decoration: BoxDecoration(color: limeGreen.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
             child: Icon(iconData, color: limeGreen, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(activity.idJenisAktifitas ?? 'Aktivitas', style: const TextStyle(color: white, fontSize: 14, fontWeight: FontWeight.w600)),
-              Text('${activity.durasiLatihan ?? 0} min', style: const TextStyle(color: grey, fontSize: 12)),
+              Text(activity.idJenisAktifitas, style: const TextStyle(color: white, fontSize: 14, fontWeight: FontWeight.w600)),
+              Text('${activity.durasiLatihan} min', style: const TextStyle(color: grey, fontSize: 12)),
             ]),
           ),
-          Text('${(activity.totalKalori ?? 0).toInt()} kkal', style: const TextStyle(color: grey, fontSize: 13)),
+          Text('${activity.totalKalori.toInt()} kkal', style: const TextStyle(color: grey, fontSize: 13)),
           IconButton(
             icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
             onPressed: () => _confirmDeleteActivity(activity),

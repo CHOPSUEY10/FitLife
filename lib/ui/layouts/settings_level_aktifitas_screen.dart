@@ -112,7 +112,7 @@ class _SettingsLevelAktifitasScreenState extends State<SettingsLevelAktifitasScr
                           margin: const EdgeInsets.only(bottom: 16),
                           padding: const EdgeInsets.all(18),
                           decoration: BoxDecoration(
-                            color: isSelected ? limeGreen.withOpacity(0.1) : cardColor,
+                            color: isSelected ? limeGreen.withValues(alpha: 0.1) : cardColor,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: isSelected ? limeGreen : borderColor,
@@ -148,7 +148,7 @@ class _SettingsLevelAktifitasScreenState extends State<SettingsLevelAktifitasScr
                                     Text(
                                       lvl['intensity']!,
                                       style: TextStyle(
-                                        color: isSelected ? limeGreen.withOpacity(0.8) : limeGreen,
+                                        color: isSelected ? limeGreen.withValues(alpha: 0.8) : limeGreen,
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
                                       ),
