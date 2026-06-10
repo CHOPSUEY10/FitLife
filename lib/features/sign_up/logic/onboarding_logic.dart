@@ -20,6 +20,7 @@ class OnboardingLogic {
 
       UserModel updatedUser = UserModel(
         id: 'local_user', // Fixed ID for single local profile
+        nama: existingUser?.nama,
         tujuan: tujuan ?? existingUser?.tujuan,
         tanggalLahir: tanggalLahir ?? existingUser?.tanggalLahir,
         tinggiBadan: tinggiBadan ?? existingUser?.tinggiBadan,

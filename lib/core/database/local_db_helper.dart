@@ -288,12 +288,6 @@ class LocalDBHelper {
         final defaultUser = UserModel(
           id: uid,
           nama: firebaseUser.displayName ?? firebaseUser.email?.split('@').first ?? 'User',
-          tanggalLahir: '2000-01-01',
-          tinggiBadan: 170,
-          beratBadan: 60,
-          jenisKelamin: 'Pria',
-          tujuan: 'Turun Berat Badan',
-          waktuLuang: '30 - 45 menit',
           isVerified: true,
         );
         // Save it to SQLite so it exists next time
