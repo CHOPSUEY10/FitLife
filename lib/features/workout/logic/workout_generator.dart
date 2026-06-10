@@ -212,22 +212,10 @@ class WorkoutGenerator {
         pool = List.from(_legExercises); // Default fallback
     }
 
-    // 2. Sesuaikan jumlah gerakan berdasarkan Waktu Luang
-    // Asumsi: Waktu lebih sedikit = gerakan lebih sedikit agar selesai tepat waktu
-    int maxExercises = pool.length;
-    if (waktuLuang.contains('15 - 30')) {
-      maxExercises = min(3, pool.length); // Hanya 3 gerakan jika waktu terbatas
-    } else if (waktuLuang.contains('30 - 45')) {
-      maxExercises = min(4, pool.length); // 4 gerakan untuk waktu sedang
-    } else {
-      maxExercises = pool.length; // Full workout jika > 45 menit
-    }
-    
-    // Potong pool sesuai batas maksimal gerakan (bisa juga diacak jika ingin variasi)
-    List<Map<String, dynamic>> selectedExercises = pool.take(maxExercises).toList();
-
-    // 3. Modifikasi Intensitas (Repetisi) & Durasi berdasarkan Level Aktivitas
-    return selectedExercises.map((exercise) {
+    // 2. Modifikasi Intensitas (Repetisi) & Durasi berdasarkan Level Aktivitas
+    // Alih-alih meningkatkan repetisi ke jumlah yang sangat besar (endurance),
+    // kita sesuaikan beban dalam batas hipertrofi atau kekuatan yang masuk akal.
+    return pool.map((exercise) {
       int baseReps = exercise['repsBase'];
       int baseDuration = exercise['durationBase'];
       bool isStatic = exercise['isStatic'] ?? false;
@@ -237,15 +225,25 @@ class WorkoutGenerator {
 
       // Logika Penyesuaian Level
       if (levelAktivitas.toLowerCase() == 'pemula') {
-        // Kurangi beban untuk pemula
         if (!isStatic) adjustedReps = (baseReps * 0.7).round();
         adjustedDuration = (baseDuration * 0.8).round();
       } else if (levelAktivitas.toLowerCase() == 'lanjut' || levelAktivitas.toLowerCase() == 'profesional') {
-        // Tambah beban untuk lanjut/pro
         if (!isStatic) adjustedReps = (baseReps * 1.3).round();
         adjustedDuration = (baseDuration * 1.2).round();
       } 
-      // Jika level 'Menengah', gunakan base value (standar)
+      
+      // 3. Modifikasi Waktu Istirahat (HIIT Logic) berdasarkan Waktu Luang
+      // Alih-alih memotong gerakan (yang bisa menyebabkan ketidakseimbangan otot),
+      // kita memanipulasi waktu istirahat antar set.
+      int restDuration = 15; // default rest
+      if (waktuLuang.contains('15 - 30')) {
+        restDuration = 5; // Sangat pendek (HIIT Mode)
+        adjustedDuration = (adjustedDuration * 0.9).round(); // Sedikit lebih cepat
+      } else if (waktuLuang.contains('30 - 45')) {
+        restDuration = 15; // Sedang
+      } else {
+        restDuration = 30; // Pemulihan maksimal untuk pertumbuhan kekuatan (Hypertrophy Mode)
+      }
 
       // Format teks reps untuk ditampilkan di UI
       String repsText = '';
@@ -253,7 +251,6 @@ class WorkoutGenerator {
         repsText = '$adjustedDuration Detik';
       } else {
         repsText = '$adjustedReps Reps';
-        // Tambahkan suffix khusus jika ada di nama gerakan
         if (exercise['name'].toString().contains('Lunge')) {
            repsText += ' (tiap kaki)';
         }
@@ -263,6 +260,7 @@ class WorkoutGenerator {
         'name': exercise['name'],
         'reps': repsText,
         'duration': adjustedDuration,
+        'restDuration': restDuration,
         'image': exercise['image'],
         'description': exercise['description'],
         'tip': exercise['tip'],

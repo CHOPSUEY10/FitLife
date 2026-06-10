@@ -98,7 +98,17 @@ class _ProfileAccountScreenState extends State<ProfileAccountScreen> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    DateTime initial = DateTime.tryParse(_tglLahirController.text) ?? DateTime(2000, 1, 1);
+    DateTime initial;
+    try {
+      if (_tglLahirController.text.contains('/')) {
+        final parts = _tglLahirController.text.split('/');
+        initial = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+      } else {
+        initial = DateTime.tryParse(_tglLahirController.text) ?? DateTime(2000, 1, 1);
+      }
+    } catch (_) {
+      initial = DateTime(2000, 1, 1);
+    }
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: initial,
@@ -125,7 +135,7 @@ class _ProfileAccountScreenState extends State<ProfileAccountScreen> {
     );
     if (picked != null) {
       setState(() {
-        _tglLahirController.text = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+        _tglLahirController.text = "${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}";
       });
     }
   }

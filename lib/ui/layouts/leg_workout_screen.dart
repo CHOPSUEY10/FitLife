@@ -80,7 +80,8 @@ class _LegWorkoutScreenState extends State<LegWorkoutScreen>
 
   void _nextExercise() {
     if (_currentIndex < _exercises.length - 1) {
-      setState(() { _isResting = true; _restCountdown = 15; });
+      int restTime = _exercises[_currentIndex]['restDuration'] ?? 15;
+      setState(() { _isResting = true; _restCountdown = restTime; });
       _runRestCountdown();
     } else {
       _onWorkoutFinished();
@@ -88,7 +89,7 @@ class _LegWorkoutScreenState extends State<LegWorkoutScreen>
   }
 
   void _runRestCountdown() async {
-    for (int i = 15; i >= 0; i--) {
+    for (int i = _restCountdown; i >= 0; i--) {
       if (!mounted) return;
       setState(() => _restCountdown = i);
       await Future.delayed(const Duration(seconds: 1));

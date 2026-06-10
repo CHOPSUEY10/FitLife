@@ -35,17 +35,27 @@ class CustomBottomNavBar extends StatelessWidget {
     bool isSelected = selectedIndex == index;
     return GestureDetector(
       onTap: () => onItemTapped(index),
-      child: Container(
-        padding: const EdgeInsets.all(8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: EdgeInsets.all(isSelected ? 10 : 8),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFFC6FF00) : Colors.transparent,
           shape: BoxShape.circle,
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFFC6FF00).withValues(alpha: 0.4),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  )
+                ]
+              : [],
         ),
         child: Image.asset(
           iconPath,
           width: 24,
           height: 24,
-          color: Colors.black,
+          color: isSelected ? Colors.black : Colors.black87,
         ),
       ),
     );

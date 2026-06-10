@@ -18,6 +18,7 @@ class _OnboardingFormState extends State<OnboardingForm> {
   final TextEditingController _heightController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
   String? _selectedGender;
+  String? _selectedWaktuLuang;
   
   final Color primaryGreen = const Color(0xFFBEFF5D);
   final Color whiteColor = const Color(0xFFFFFFFF);
@@ -38,10 +39,13 @@ class _OnboardingFormState extends State<OnboardingForm> {
         _buildTextField(_weightController, 'Misal: 65', isNumber: true),
         const SizedBox(height: 16),
         _buildLabel('Jenis Kelamin'),
-        _buildDropdown(),
+        _buildDropdownGender(),
+        const SizedBox(height: 16),
+        _buildLabel('Waktu Luang Latihan'),
+        _buildDropdownWaktuLuang(),
         const SizedBox(height: 30),
         _buildButton('Lanjut', isGreen: true, onPressed: () async {
-          if (_dobController.text.isEmpty || _heightController.text.isEmpty || _weightController.text.isEmpty || _selectedGender == null) {
+          if (_dobController.text.isEmpty || _heightController.text.isEmpty || _weightController.text.isEmpty || _selectedGender == null || _selectedWaktuLuang == null) {
             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Harap isi semua data terlebih dahulu!')));
             return;
           }
@@ -52,7 +56,7 @@ class _OnboardingFormState extends State<OnboardingForm> {
             tinggiBadan: double.tryParse(_heightController.text),
             beratBadan: double.tryParse(_weightController.text),
             jenisKelamin: _selectedGender,
-            waktuLuang: null,
+            waktuLuang: _selectedWaktuLuang,
           );
           // Navigate to next page
           widget.onSavedAndContinue();
@@ -84,7 +88,7 @@ class _OnboardingFormState extends State<OnboardingForm> {
         );
         if (pickedDate != null) {
           setState(() {
-            _dobController.text = "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+            _dobController.text = "${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}";
           });
         }
       },
@@ -119,7 +123,7 @@ class _OnboardingFormState extends State<OnboardingForm> {
     );
   }
 
-  Widget _buildDropdown() {
+  Widget _buildDropdownGender() {
     return DropdownButtonFormField<String>(
       initialValue: _selectedGender,
       onChanged: (String? newValue) {
@@ -136,6 +140,34 @@ class _OnboardingFormState extends State<OnboardingForm> {
       }).toList(),
       decoration: InputDecoration(
         hintText: 'Pilih',
+        hintStyle: GoogleFonts.allerta(color: Colors.black54),
+        filled: true,
+        fillColor: whiteColor,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDropdownWaktuLuang() {
+    return DropdownButtonFormField<String>(
+      initialValue: _selectedWaktuLuang,
+      onChanged: (String? newValue) {
+        setState(() {
+          _selectedWaktuLuang = newValue;
+        });
+      },
+      items: <String>['15 - 30 menit', '30 - 45 menit', '> 45 menit']
+          .map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value, style: GoogleFonts.allerta()),
+        );
+      }).toList(),
+      decoration: InputDecoration(
+        hintText: 'Pilih Waktu Luang',
         hintStyle: GoogleFonts.allerta(color: Colors.black54),
         filled: true,
         fillColor: whiteColor,

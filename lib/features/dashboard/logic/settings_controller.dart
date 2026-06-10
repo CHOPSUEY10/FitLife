@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/database/local_db_helper.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/models/target_harian_model.dart';
+import '../../../core/utils/target_calculator.dart';
 
 class SettingsController extends ChangeNotifier {
   // ── User profile & physical data ──────────────────────────
@@ -107,6 +108,7 @@ class SettingsController extends ChangeNotifier {
     tanggalLahir = tanggalLahirBaru;
     jenisKelamin = jenisKelaminBaru;
     await _saveToDBUser();
+    await _recalculateTargets();
     notifyListeners();
   }
 
@@ -117,6 +119,7 @@ class SettingsController extends ChangeNotifier {
     tinggiBadan = tinggi;
     beratBadan = berat;
     await _saveToDBUser();
+    await _recalculateTargets();
     notifyListeners();
   }
 
@@ -129,6 +132,7 @@ class SettingsController extends ChangeNotifier {
   Future<void> saveWaktuLuang(String waktuBaru) async {
     waktuLuang = waktuBaru;
     await _saveToDBUser();
+    await _recalculateTargets();
     notifyListeners();
   }
 
@@ -136,6 +140,7 @@ class SettingsController extends ChangeNotifier {
     levelAktivitas = level;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('levelAktivitas', levelAktivitas);
+    await _recalculateTargets();
     notifyListeners();
   }
 
@@ -212,6 +217,14 @@ class SettingsController extends ChangeNotifier {
       waktuLuang: waktuLuang,
     );
     await LocalDBHelper.instance.saveUserMetrics(user);
+  }
+
+  Future<void> _recalculateTargets() async {
+    await TargetCalculator.calculateAndSaveTargetHarian();
+    final target = await LocalDBHelper.instance.getTargetHarian();
+    targetLangkah = target.targetLangkah ?? 8000;
+    targetKalori = target.targetKalori ?? 500.0;
+    targetDurasiLatihan = target.targetDurasiLatihan ?? 45;
   }
 
   // ── Computed helpers ──────────────────────────────────────

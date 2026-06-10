@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 import '../database/local_db_helper.dart';
 import '../models/user_model.dart';
+import '../utils/target_calculator.dart';
 
 class FirebaseSyncService {
   static final FirebaseSyncService instance = FirebaseSyncService._();
@@ -41,6 +42,7 @@ class FirebaseSyncService {
       }
 
       final levelAktivitas = prefs.getString('levelAktivitas') ?? 'Pemula';
+      final target = await LocalDBHelper.instance.getTargetHarian();
 
       // Prepare sync map
       final Map<String, dynamic> syncData = {
@@ -54,6 +56,9 @@ class FirebaseSyncService {
         'tujuan': localUser.tujuan,
         'waktuLuang': localUser.waktuLuang,
         'levelAktivitas': levelAktivitas,
+        'targetLangkah': target.targetLangkah,
+        'targetKalori': target.targetKalori,
+        'targetDurasiLatihan': target.targetDurasiLatihan,
         'lastSyncedAt': FieldValue.serverTimestamp(),
       };
 
@@ -65,6 +70,51 @@ class FirebaseSyncService {
       debugPrint('FirebaseSync: Successfully synced user data to Firebase Firestore.');
     } catch (e) {
       debugPrint('FirebaseSync Error: $e');
+    }
+  }
+
+  /// Attempts to restore user data from Firestore to the local SQLite database.
+  /// Returns true if data was successfully restored, false if no data exists.
+  Future<bool> restoreUserData() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return false;
+
+      final docSnapshot = await _firestore.collection('users').doc(user.uid).get();
+      if (docSnapshot.exists && docSnapshot.data() != null) {
+        final data = docSnapshot.data()!;
+        
+        // Ensure that required fields (like tinggiBadan) actually exist before restoring
+        if (data['tinggiBadan'] != null) {
+          final restoredUser = UserModel(
+            id: user.uid,
+            nama: data['nama'],
+            tanggalLahir: data['tanggalLahir'],
+            tinggiBadan: (data['tinggiBadan'] as num?)?.toDouble(),
+            beratBadan: (data['beratBadan'] as num?)?.toDouble(),
+            jenisKelamin: data['jenisKelamin'],
+            tujuan: data['tujuan'],
+            waktuLuang: data['waktuLuang'],
+            isVerified: true,
+          );
+
+          await LocalDBHelper.instance.saveUserMetrics(restoredUser);
+          
+          if (data['levelAktivitas'] != null) {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('levelAktivitas', data['levelAktivitas']);
+          }
+          
+          // RECALCULATE TARGET HARIAN AFTER RESTORE
+          await TargetCalculator.calculateAndSaveTargetHarian();
+          
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      debugPrint('FirebaseSync Restore Error: $e');
+      return false;
     }
   }
 }

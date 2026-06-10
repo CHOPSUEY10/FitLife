@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../errors/failures.dart';
+import '../database/local_db_helper.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -82,10 +83,22 @@ class AuthService {
   /// Signs out from both Google and Firebase
   Future<void> signOut() async {
     try {
+      await LocalDBHelper.instance.clearCurrentUser();
       await _googleSignIn.signOut();
       await _auth.signOut();
     } catch (e) {
       throw Exception('Failed to sign out: $e');
+    }
+  }
+
+  /// Sends a password reset email
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      throw Exception('Reset password error: ${e.message}');
+    } catch (e) {
+      throw Exception('Failed to send reset email: $e');
     }
   }
 

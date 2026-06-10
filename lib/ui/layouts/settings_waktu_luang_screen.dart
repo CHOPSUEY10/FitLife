@@ -168,7 +168,7 @@ class _SettingsWaktuLuangScreenState extends State<SettingsWaktuLuangScreen> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: MediaQuery.of(context).size.height * 0.25),
                   child: SizedBox(
                     width: double.infinity,
                     height: 52,

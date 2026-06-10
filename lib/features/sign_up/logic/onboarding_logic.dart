@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/models/user_model.dart';
+import '../../../core/models/target_harian_model.dart';
 import '../../../core/database/local_db_helper.dart';
+import '../../../core/utils/target_calculator.dart';
 
 class OnboardingLogic {
   // Method to save the data captured in the onboarding screens
@@ -47,9 +49,17 @@ class OnboardingLogic {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('levelAktivitas', level);
       debugPrint('Successfully saved onboarding levelAktivitas: $level');
+      
+      // Calculate dynamic targets based on all gathered data
+      await _calculateAndSaveTargetHarian();
     } catch (e) {
       debugPrint('Error saving onboarding levelAktivitas: $e');
       throw Exception('Gagal menyimpan level aktivitas: $e');
     }
+  }
+
+  Future<void> _calculateAndSaveTargetHarian() async {
+    // Dipindahkan ke utilitas terpusat agar bisa digunakan di banyak tempat (Settings, dsb)
+    await TargetCalculator.calculateAndSaveTargetHarian();
   }
 }

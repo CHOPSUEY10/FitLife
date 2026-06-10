@@ -298,6 +298,23 @@ class LocalDBHelper {
     }
   }
 
+  Future<void> clearCurrentUser() async {
+    final db = await instance.database;
+    final uid = _getCurrentUserId();
+    await db.delete(
+      'users',
+      where: 'id = ?',
+      whereArgs: [uid],
+    );
+    
+    final targetId = _getCurrentTargetId();
+    await db.delete(
+      'target_harian',
+      where: 'id = ?',
+      whereArgs: [targetId],
+    );
+  }
+
   // ─── Target Harian CRUD ─────────────────────────────────────
 
   Future<void> saveTargetHarian(TargetHarianModel target) async {

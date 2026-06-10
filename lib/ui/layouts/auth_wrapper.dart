@@ -6,6 +6,7 @@ import 'splash_screen.dart';
 import 'onboarding_screen.dart';
 import 'main_screen.dart';
 import 'otp_verification_screen.dart';
+import '../../core/service/firebase_sync_service.dart';
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
@@ -52,19 +53,28 @@ class AuthWrapper extends StatelessWidget {
   }
 
   Widget _buildDbMetricsCheck() {
-    return FutureBuilder(
-      future: LocalDBHelper.instance.getUserMetrics(),
+    return FutureBuilder<bool>(
+      future: _checkAndRestoreData(),
       builder: (context, dbSnapshot) {
         if (dbSnapshot.connectionState == ConnectionState.waiting) {
           return _loadingScaffold();
         }
-        if (dbSnapshot.data != null && dbSnapshot.data!.tujuan != null) {
+        if (dbSnapshot.data == true) {
           return const MainScreen();
         } else {
           return const OnboardingScreen();
         }
       },
     );
+  }
+
+  Future<bool> _checkAndRestoreData() async {
+    final localUser = await LocalDBHelper.instance.getUserMetrics();
+    if (localUser != null && localUser.tinggiBadan != null) {
+      return true;
+    }
+    // Attempt to restore from Firestore
+    return await FirebaseSyncService.instance.restoreUserData();
   }
 
   Widget _loadingScaffold() {

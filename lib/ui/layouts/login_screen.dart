@@ -5,6 +5,7 @@ import '../components/auth_text_field.dart';
 import '../components/glass_container.dart';
 import 'register_screen.dart';
 import 'auth_wrapper.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -136,9 +137,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 ],
                               ),
-                              Text(
-                                'Forgot Password?',
-                                style: GoogleFonts.allerta(color: Colors.white, fontSize: 12),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+                                  );
+                                },
+                                child: Text(
+                                  'Forgot Password?',
+                                  style: GoogleFonts.allerta(color: Colors.white, fontSize: 12, decoration: TextDecoration.underline),
+                                ),
                               ),
                             ],
                           ),
