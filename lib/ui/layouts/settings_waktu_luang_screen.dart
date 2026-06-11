@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../features/dashboard/logic/settings_controller.dart';
+import '../components/global_snackbar.dart';
 
 class SettingsWaktuLuangScreen extends StatefulWidget {
-  const SettingsWaktuLuangScreen({Key? key}) : super(key: key);
+  const SettingsWaktuLuangScreen({super.key});
 
   @override
   State<SettingsWaktuLuangScreen> createState() => _SettingsWaktuLuangScreenState();
@@ -74,13 +75,7 @@ class _SettingsWaktuLuangScreenState extends State<SettingsWaktuLuangScreen> {
     setState(() => _isLoading = true);
     await _controller.saveWaktuLuang(_selectedWaktu);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Pilihan Waktu Luang berhasil diperbarui'),
-          backgroundColor: limeGreen,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      GlobalSnackBar.show(context, 'Pilihan Waktu Luang berhasil diperbarui');
       Navigator.pop(context, true);
     }
   }
@@ -168,7 +163,7 @@ class _SettingsWaktuLuangScreenState extends State<SettingsWaktuLuangScreen> {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: MediaQuery.of(context).size.height * 0.25),
+                  padding: EdgeInsets.only(left: 20, right: 20, top: 5, bottom: MediaQuery.of(context).size.height * 0.10),
                   child: SizedBox(
                     width: double.infinity,
                     height: 52,

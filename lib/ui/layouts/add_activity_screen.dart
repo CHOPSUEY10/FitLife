@@ -3,9 +3,12 @@ import '../../core/database/local_db_helper.dart';
 import '../../core/enums/schedule_enum.dart';
 import '../../core/models/aktifitas_harian_model.dart';
 import '../components/profile_avatar.dart';
+import '../components/global_snackbar.dart';
+import '../../features/dashboard/logic/settings_controller.dart';
+import '../../features/dashboard/logic/recommendation_service.dart';
 
 class AddActivityScreen extends StatefulWidget {
-  const AddActivityScreen({Key? key}) : super(key: key);
+  const AddActivityScreen({super.key});
 
   @override
   State<AddActivityScreen> createState() => _AddActivityScreenState();
@@ -18,9 +21,13 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
   String? _selectedMuscleGroup;
   List<String> _muscleGroupOptions = [];
 
+  late final SettingsController _settingsController;
+  List<Map<String, dynamic>> _recommendations = [];
+
   @override
   void initState() {
     super.initState();
+    _settingsController = SettingsController();
     _fetchUsername();
     _fetchMuscleGroups();
   }
@@ -30,6 +37,22 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
     if (mounted) {
       setState(() {
         _muscleGroupOptions = groups;
+      });
+      await _settingsController.loadAll();
+      _generateRecommendations();
+    }
+  }
+
+  void _generateRecommendations() {
+    final availableSchedules = _getAvailableSchedules();
+    final recs = RecommendationService.getRecommendations(
+      settings: _settingsController,
+      availableMuscles: _muscleGroupOptions,
+      availableSchedules: availableSchedules,
+    );
+    if (mounted) {
+      setState(() {
+        _recommendations = recs;
       });
     }
   }
@@ -130,15 +153,11 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
 
   Future<void> _onSave() async {
     if (_selectedSchedule == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pilih jadwal terlebih dahulu'), backgroundColor: Colors.red),
-      );
+      GlobalSnackBar.show(context, 'Pilih jadwal terlebih dahulu', backgroundColor: Colors.black);
       return;
     }
     if (_selectedMuscleGroup == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pilih aktivitas terlebih dahulu'), backgroundColor: Colors.red),
-      );
+      GlobalSnackBar.show(context, 'Pilih aktivitas terlebih dahulu', backgroundColor: Colors.black);
       return;
     }
 
@@ -198,9 +217,7 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
     }
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Aktivitas berhasil disimpan!'), backgroundColor: Color(0xFFC6FF00)),
-      );
+      GlobalSnackBar.show(context, 'Aktivitas berhasil disimpan!', backgroundColor: Colors.black);
       setState(() {
         _selectedSchedule = null;
         _selectedMuscleGroup = null;
@@ -249,7 +266,7 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
                           // Pilih Jadwal
                           const Text('Pilih Jadwal', style: TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w600)),
                           const SizedBox(height: 6),
-                          _buildDropdownField(value: _selectedSchedule?.label, hint: '', onTap: _showSchedulePicker),
+                          _buildDropdownField(value: _selectedSchedule?.label, hint: 'Pagi/Siang/Malam', onTap: _showSchedulePicker),
                           const SizedBox(height: 16),
 
                           // Pilih Aktivitas
@@ -257,6 +274,86 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
                           const SizedBox(height: 6),
                           _buildDropdownField(value: _selectedMuscleGroup, hint: 'Pilih Bagian Otot', onTap: _showMuscleGroupPicker),
                           const SizedBox(height: 24),
+
+                          // Rekomendasi
+                          if (_recommendations.isNotEmpty) ...[
+                            const Row(
+                              children: [
+                                Icon(Icons.bolt, color: Colors.black, size: 18),
+                                SizedBox(width: 4),
+                                Text('Rekomendasi Latihan Hari Ini', style: TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w700)),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              height: 105,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: _recommendations.length,
+                                itemBuilder: (ctx, idx) {
+                                  final rec = _recommendations[idx];
+                                  final JadwalAktivitas sched = rec['schedule'];
+                                  final String muscle = rec['muscle'];
+                                  final isSelected = _selectedSchedule == sched && _selectedMuscleGroup == muscle;
+                                  
+                                  return GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedSchedule = sched;
+                                        _selectedMuscleGroup = muscle;
+                                      });
+                                    },
+                                    child: Container(
+                                      width: 290,
+                                      margin: const EdgeInsets.only(right: 12),
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: isSelected ? Colors.black : Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: isSelected ? Colors.black : Colors.transparent,
+                                          width: 2,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(alpha: 0.05),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2),
+                                          )
+                                        ],
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            rec['title'],
+                                            style: TextStyle(
+                                              color: isSelected ? Colors.white : Colors.black87,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            '$muscle • ${sched.label}',
+                                            style: TextStyle(
+                                              color: isSelected ? const Color(0xFFC6FF00) : Colors.black54,
+                                              fontSize: 11,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                          ],
 
                           // Simpan
                           SizedBox(

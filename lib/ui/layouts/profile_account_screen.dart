@@ -7,9 +7,11 @@ import '../../features/dashboard/logic/settings_controller.dart';
 import '../../features/profile/logic/profile_account_controller.dart';
 import '../components/update_email_form.dart';
 import '../components/update_password_form.dart';
+import '../components/global_snackbar.dart';
+import '../components/profile_avatar.dart';
 
 class ProfileAccountScreen extends StatefulWidget {
-  const ProfileAccountScreen({Key? key}) : super(key: key);
+  const ProfileAccountScreen({super.key});
 
   @override
   State<ProfileAccountScreen> createState() => _ProfileAccountScreenState();
@@ -85,6 +87,7 @@ class _ProfileAccountScreenState extends State<ProfileAccountScreen> {
         });
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('profile_image_path', pickedFile.path);
+        ProfileAvatar.imagePathNotifier.value = pickedFile.path;
       }
     } catch (e) {
       debugPrint('Error picking image: $e');
@@ -149,13 +152,7 @@ class _ProfileAccountScreenState extends State<ProfileAccountScreen> {
         jenisKelaminBaru: _jenisKelamin,
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profil berhasil diperbarui'),
-            backgroundColor: limeGreen,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        GlobalSnackBar.show(context, 'Profil berhasil diperbarui');
         Navigator.pop(context, true);
       }
     }
@@ -205,13 +202,16 @@ class _ProfileAccountScreenState extends State<ProfileAccountScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: limeGreen))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+          : Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                     Center(
                       child: GestureDetector(
                         onTap: _pickImage,
@@ -229,13 +229,13 @@ class _ProfileAccountScreenState extends State<ProfileAccountScreen> {
                                     )
                                   : null,
                             ),
-                            Positioned(
+                            const Positioned(
                               bottom: 0,
                               right: 0,
                               child: CircleAvatar(
                                 radius: 18,
                                 backgroundColor: limeGreen,
-                                child: const Icon(
+                                child: Icon(
                                   Icons.camera_alt,
                                   size: 16,
                                   color: Colors.black,
@@ -452,8 +452,14 @@ class _ProfileAccountScreenState extends State<ProfileAccountScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 40),
-                    SizedBox(
+                    const SizedBox(height: 16),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: MediaQuery.of(context).size.height * 0.10),
+                    child: SizedBox(
                       width: double.infinity,
                       height: 52,
                       child: ElevatedButton(
@@ -474,8 +480,8 @@ class _ProfileAccountScreenState extends State<ProfileAccountScreen> {
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
     );

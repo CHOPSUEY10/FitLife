@@ -50,6 +50,7 @@ dependencies:
   image_picker: ^1.1.2
   mailer: ^7.1.0
   intl: any
+  flutter_secure_storage: ^10.3.1
 
 dev_dependencies:
   flutter_test:
@@ -80,7 +81,7 @@ flutter:
     - assets/background/
     - assets/icon/
     - assets/illustration/
-    - .env
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

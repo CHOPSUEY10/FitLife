@@ -28,7 +28,7 @@ class LocalDBHelper {
 
     return await openDatabase(
       path,
-      version: 6, // Upgraded from 5 to 6 to support user_id in aktifitas_harian
+      version: 7, // Upgraded to 7 to add performance indexes
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
       onConfigure: _onConfigure,
@@ -88,6 +88,10 @@ class LocalDBHelper {
     }, conflictAlgorithm: ConflictAlgorithm.ignore);
 
     await _seedWorkoutData(db);
+
+    // Performance Indexes
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_aktifitas_tanggal ON aktifitas_harian (tanggal)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_aktifitas_user_id ON aktifitas_harian (user_id)');
   }
 
   Future<void> _createWorkoutTables(Database db) async {
@@ -188,6 +192,11 @@ class LocalDBHelper {
       } catch (e) {
         // Silently catch in case column already exists
       }
+    }
+    if (oldVersion < 7) {
+      // Add indexes for performance optimization
+      await db.execute('CREATE INDEX IF NOT EXISTS idx_aktifitas_tanggal ON aktifitas_harian (tanggal)');
+      await db.execute('CREATE INDEX IF NOT EXISTS idx_aktifitas_user_id ON aktifitas_harian (user_id)');
     }
   }
 
@@ -445,7 +454,7 @@ class LocalDBHelper {
       whereArgs: ['$date%', _getCurrentUserId()],
       orderBy: 'id_aktifitas_harian DESC',
     );
-    return maps.map((m) => AktifitasHarianModel.fromMap(m)).toList();
+    return maps.map(AktifitasHarianModel.fromMap).toList();
   }
 
   Future<List<Map<String, dynamic>>> getWeeklyWorkoutLogs() async {

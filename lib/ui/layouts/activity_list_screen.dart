@@ -5,7 +5,7 @@ import '../../core/models/aktifitas_harian_model.dart';
 import '../components/profile_avatar.dart';
 
 class ActivityListScreen extends StatefulWidget {
-  const ActivityListScreen({Key? key}) : super(key: key);
+  const ActivityListScreen({super.key});
 
   @override
   State<ActivityListScreen> createState() => _ActivityListScreenState();
@@ -81,6 +81,13 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _fetchMonthData();
+        _fetchDailyActivities();
+      }
+    });
+
     return Scaffold(
       backgroundColor: bgColor,
       body: SafeArea(
@@ -218,8 +225,8 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      margin: const EdgeInsets.only(bottom: 30),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 25), // <-- Ubah vertical: 20 untuk menambah tinggi
       decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFF2A2A3E))),
       child: Row(
         children: [
@@ -278,10 +285,11 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Kalori Terbakar', style: TextStyle(color: white, fontSize: 16, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         Container(
+          height : 120,
           width: double.infinity,
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 42), // <-- Padding vertikal diperbesar menjadi 32
           decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFF2A2A3E))),
           child: Text('${_burnedCalories.toInt()} kkal', style: const TextStyle(color: limeGreen, fontSize: 24, fontWeight: FontWeight.bold)),
         ),

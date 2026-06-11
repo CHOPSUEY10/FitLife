@@ -11,7 +11,7 @@ class StatsCard extends StatelessWidget {
   final Widget? customProgress;
 
   const StatsCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.value,
     this.subtitle,
@@ -20,7 +20,7 @@ class StatsCard extends StatelessWidget {
     required this.valueColor,
     required this.iconPath,
     this.customProgress,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

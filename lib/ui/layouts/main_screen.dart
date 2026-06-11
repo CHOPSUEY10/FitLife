@@ -9,9 +9,9 @@ class MainScreen extends StatefulWidget {
   final int initialNavIndex;
 
   const MainScreen({
-    Key? key,
+    super.key,
     this.initialNavIndex = 0,
-  }) : super(key: key);
+  });
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -21,10 +21,10 @@ class _MainScreenState extends State<MainScreen> {
   late int _currentIndex;
 
   final List<Widget> _screens = [
-    const DashboardScreen(),
-    const AddActivityScreen(),
-    const ActivityListScreen(),
-    const SettingsScreen(),
+    DashboardScreen(),
+    AddActivityScreen(),
+    ActivityListScreen(),
+    SettingsScreen(),
   ];
 
   @override

@@ -7,37 +7,26 @@ class ProfileAvatar extends StatefulWidget {
   final double iconSize;
 
   const ProfileAvatar({
-    Key? key,
+    super.key,
     this.radius = 22,
     this.iconSize = 24,
-  }) : super(key: key);
+  });
 
-  @override
-  State<ProfileAvatar> createState() => _ProfileAvatarState();
-}
+  static final ValueNotifier<String?> imagePathNotifier = ValueNotifier<String?>(null);
 
-class _ProfileAvatarState extends State<ProfileAvatar> {
-  String? _imagePath;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadProfileImage();
-  }
-
-  Future<void> _loadProfileImage() async {
+  static Future<void> loadProfileImage() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedPath = prefs.getString('profile_image_path');
       if (savedPath != null && savedPath.isNotEmpty) {
         final file = File(savedPath);
         if (await file.exists()) {
-          if (mounted) {
-            setState(() {
-              _imagePath = savedPath;
-            });
-          }
+          imagePathNotifier.value = savedPath;
+        } else {
+          imagePathNotifier.value = null;
         }
+      } else {
+        imagePathNotifier.value = null;
       }
     } catch (e) {
       debugPrint('Error loading avatar: $e');
@@ -45,21 +34,37 @@ class _ProfileAvatarState extends State<ProfileAvatar> {
   }
 
   @override
+  State<ProfileAvatar> createState() => _ProfileAvatarState();
+}
+
+class _ProfileAvatarState extends State<ProfileAvatar> {
+  @override
+  void initState() {
+    super.initState();
+    ProfileAvatar.loadProfileImage();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (_imagePath != null) {
-      return CircleAvatar(
-        radius: widget.radius,
-        backgroundImage: FileImage(File(_imagePath!)),
-      );
-    }
-    return CircleAvatar(
-      radius: widget.radius,
-      backgroundColor: Colors.grey[800],
-      child: Icon(
-        Icons.person,
-        color: Colors.white,
-        size: widget.iconSize,
-      ),
+    return ValueListenableBuilder<String?>(
+      valueListenable: ProfileAvatar.imagePathNotifier,
+      builder: (context, imagePath, child) {
+        if (imagePath != null) {
+          return CircleAvatar(
+            radius: widget.radius,
+            backgroundImage: FileImage(File(imagePath)),
+          );
+        }
+        return CircleAvatar(
+          radius: widget.radius,
+          backgroundColor: Colors.grey[800],
+          child: Icon(
+            Icons.person,
+            color: Colors.white,
+            size: widget.iconSize,
+          ),
+        );
+      },
     );
   }
 }

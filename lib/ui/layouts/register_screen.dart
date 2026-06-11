@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/service/auth_service.dart';
 import '../components/auth_text_field.dart';
 import '../components/glass_container.dart';
+import '../components/global_snackbar.dart';
 import 'login_screen.dart';
 import 'auth_wrapper.dart';
 
@@ -31,9 +32,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
+        GlobalSnackBar.show(context, e.toString(), backgroundColor: Colors.redAccent);
       }
     }
   }
@@ -41,11 +40,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _registerManually() async {
     if (_emailController.text.isEmpty ||
         _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill out all fields')));
+      GlobalSnackBar.show(context, 'Please fill out all fields', backgroundColor: Colors.redAccent);
       return;
     }
     if (!_iAgree) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('You must agree to the terms')));
+      GlobalSnackBar.show(context, 'You must agree to the terms', backgroundColor: Colors.redAccent);
       return;
     }
 
@@ -63,11 +62,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+        GlobalSnackBar.show(context, e.toString(), backgroundColor: Colors.redAccent);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override

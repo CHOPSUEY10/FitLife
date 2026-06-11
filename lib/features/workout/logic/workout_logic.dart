@@ -47,11 +47,11 @@ class WorkoutLogic {
     String dbCategory = idJenisAktifitas;
 
     final lowerId = idJenisAktifitas.toLowerCase();
-    if (lowerId.contains('abs')) { met = 4.0; dbCategory = 'Abs Workout'; }
-    else if (lowerId.contains('chest')) { met = 3.8; dbCategory = 'Chest Workout'; }
-    else if (lowerId.contains('arm')) { met = 3.5; dbCategory = 'Arm Workout'; }
-    else if (lowerId.contains('leg')) { met = 5.0; dbCategory = 'Leg Workout'; }
-    else if (lowerId.contains('jog') || lowerId.contains('cardio')) { met = 7.0; dbCategory = 'Cardio'; }
+    if (lowerId.contains('abs')) { met = 5.0; dbCategory = 'Abs Workout'; }
+    else if (lowerId.contains('chest')) { met = 5.0; dbCategory = 'Chest Workout'; }
+    else if (lowerId.contains('arm')) { met = 4.5; dbCategory = 'Arm Workout'; }
+    else if (lowerId.contains('leg')) { met = 6.0; dbCategory = 'Leg Workout'; }
+    else if (lowerId.contains('jog') || lowerId.contains('cardio')) { met = 7.5; dbCategory = 'Cardio'; }
 
     // 3. Calculate calories
     final double totalKalori = calculateCalories(

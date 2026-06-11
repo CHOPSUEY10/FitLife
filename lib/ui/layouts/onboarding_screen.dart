@@ -111,7 +111,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildStep1() {
     return Stack(
       children: [
-        Image(image: AssetImage("assets/background/onboardingBg.png"), fit: BoxFit.cover),
+        const Image(image: AssetImage("assets/background/onboardingBg.png"), fit: BoxFit.cover),
         SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
@@ -152,7 +152,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildStep3() {
     return Stack(
       children: [
-         Image(image: AssetImage("assets/background/onboardingBg3.png"), fit: BoxFit.cover),
+         const Image(image: AssetImage("assets/background/onboardingBg3.png"), fit: BoxFit.cover),
         SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32.0),
@@ -319,7 +319,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildStep5() {
     return Stack(
       children: [
-       Image(image: AssetImage("assets/background/onboardingBg5.png"), fit: BoxFit.cover),
+       const Image(image: AssetImage("assets/background/onboardingBg5.png"), fit: BoxFit.cover),
         SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(24.0),

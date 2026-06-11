@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../features/dashboard/logic/settings_controller.dart';
+import '../components/global_snackbar.dart';
 
 class SettingsUmumScreen extends StatefulWidget {
-  const SettingsUmumScreen({Key? key}) : super(key: key);
+  const SettingsUmumScreen({super.key});
 
   @override
   State<SettingsUmumScreen> createState() => _SettingsUmumScreenState();
@@ -48,13 +49,7 @@ class _SettingsUmumScreenState extends State<SettingsUmumScreen> {
       malam: _controller.modeMalam, // Keep old modeMalam
     );
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Pengaturan Umum berhasil diperbarui'),
-          backgroundColor: limeGreen,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      GlobalSnackBar.show(context, 'Pengaturan Umum berhasil diperbarui');
       Navigator.pop(context, true);
     }
   }
@@ -115,7 +110,7 @@ class _SettingsUmumScreenState extends State<SettingsUmumScreen> {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: MediaQuery.of(context).size.height * 0.25),
+                  padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: MediaQuery.of(context).size.height * 0.10),
                   child: SizedBox(
                     width: double.infinity,
                     height: 52,

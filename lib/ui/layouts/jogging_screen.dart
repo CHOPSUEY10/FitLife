@@ -4,7 +4,7 @@ import 'package:latlong2/latlong.dart';
 import '../../features/marathon/logic/jogging_controller.dart';
 
 class JoggingScreen extends StatefulWidget {
-  const JoggingScreen({Key? key}) : super(key: key);
+  const JoggingScreen({super.key});
 
   @override
   State<JoggingScreen> createState() => _JoggingScreenState();

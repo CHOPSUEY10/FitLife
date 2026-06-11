@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/service/auth_service.dart';
 import '../components/auth_text_field.dart';
 import '../components/glass_container.dart';
+import '../components/global_snackbar.dart';
 import 'register_screen.dart';
 import 'auth_wrapper.dart';
 import 'forgot_password_screen.dart';
@@ -31,16 +32,14 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
+        GlobalSnackBar.show(context, e.toString(), backgroundColor: Colors.redAccent);
       }
     }
   }
 
   void _loginManually() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill out all fields')));
+      GlobalSnackBar.show(context, 'Please fill out all fields', backgroundColor: Colors.redAccent);
       return;
     }
 
@@ -57,11 +56,18 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+        GlobalSnackBar.show(context, e.toString(), backgroundColor: Colors.redAccent);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -133,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   const SizedBox(width: 8),
                                   Text(
                                     'Remember me',
-                                    style: GoogleFonts.allerta(color: Colors.white, fontSize: 12),
+                                    style: GoogleFonts.allerta(color: Colors.white, fontSize: 10),
                                   ),
                                 ],
                               ),
@@ -145,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 },
                                 child: Text(
                                   'Forgot Password?',
-                                  style: GoogleFonts.allerta(color: Colors.white, fontSize: 12, decoration: TextDecoration.underline),
+                                  style: GoogleFonts.allerta(color: Colors.white, fontSize: 10, decoration: TextDecoration.underline),
                                 ),
                               ),
                             ],

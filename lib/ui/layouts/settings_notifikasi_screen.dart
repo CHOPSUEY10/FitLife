@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../features/dashboard/logic/settings_controller.dart';
+import '../components/global_snackbar.dart';
 
 class SettingsNotifikasiScreen extends StatefulWidget {
-  const SettingsNotifikasiScreen({Key? key}) : super(key: key);
+  const SettingsNotifikasiScreen({super.key});
 
   @override
   State<SettingsNotifikasiScreen> createState() => _SettingsNotifikasiScreenState();
@@ -81,13 +82,7 @@ class _SettingsNotifikasiScreenState extends State<SettingsNotifikasiScreen> {
       waktu: _waktuPengingat,
     );
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Pengaturan Notifikasi berhasil disimpan'),
-          backgroundColor: limeGreen,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      GlobalSnackBar.show(context, 'Pengaturan Notifikasi berhasil disimpan');
       Navigator.pop(context, true);
     }
   }
@@ -193,7 +188,7 @@ class _SettingsNotifikasiScreenState extends State<SettingsNotifikasiScreen> {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: MediaQuery.of(context).size.height * 0.25),
+                  padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: MediaQuery.of(context).size.height * 0.10),
                   child: SizedBox(
                     width: double.infinity,
                     height: 52,

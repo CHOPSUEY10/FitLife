@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/otp_config.dart';
 
 class OtpService {
@@ -17,12 +17,9 @@ class OtpService {
       final random = Random();
       final otpCode = (100000 + random.nextInt(900000)).toString();
 
-      // Save to SharedPreferences for verification
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('email_otp_code_$email', otpCode);
-
-      // Print to debug console
-      print("[Email OTP] Kode verifikasi untuk $email adalah: $otpCode");
+      // Save securely for verification
+      const secureStorage = FlutterSecureStorage();
+      await secureStorage.write(key: 'email_otp_code_$email', value: otpCode);
 
       // Check if SMTP credentials are default placeholder
       if (OtpConfig.smtpUsername == 'YOUR_EMAIL@gmail.com' ||
@@ -63,15 +60,15 @@ class OtpService {
     required String code,
   }) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final storedOtp = prefs.getString('email_otp_code_$email');
-      
-      // Fallback default code if SMTP wasn't configured yet (so developers can test 123456 as backup)
-      if (storedOtp == null && code == "123456") {
+      const secureStorage = FlutterSecureStorage();
+      final storedOtp = await secureStorage.read(key: 'email_otp_code_$email');
+
+      if (code == storedOtp) {
+        // Hapus kode setelah berhasil diverifikasi agar tidak bisa dipakai lagi
+        await secureStorage.delete(key: 'email_otp_code_$email');
         return true;
       }
-
-      return code == storedOtp;
+      return false;
     } catch (e) {
       return false;
     }

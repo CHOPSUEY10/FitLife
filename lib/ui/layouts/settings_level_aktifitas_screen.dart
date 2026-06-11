@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../features/dashboard/logic/settings_controller.dart';
+import '../components/global_snackbar.dart';
 
 class SettingsLevelAktifitasScreen extends StatefulWidget {
-  const SettingsLevelAktifitasScreen({Key? key}) : super(key: key);
+  const SettingsLevelAktifitasScreen({super.key});
 
   @override
   State<SettingsLevelAktifitasScreen> createState() => _SettingsLevelAktifitasScreenState();
@@ -62,13 +63,7 @@ class _SettingsLevelAktifitasScreenState extends State<SettingsLevelAktifitasScr
     setState(() => _isLoading = true);
     await _controller.saveLevelAktivitas(_selectedLevel);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Level Aktivitas berhasil disimpan'),
-          backgroundColor: limeGreen,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      GlobalSnackBar.show(context, 'Level Aktivitas berhasil disimpan');
       Navigator.pop(context, true);
     }
   }
@@ -166,7 +161,7 @@ class _SettingsLevelAktifitasScreenState extends State<SettingsLevelAktifitasScr
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: MediaQuery.of(context).size.height * 0.25),
+                  padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: MediaQuery.of(context).size.height * 0.10),
                   child: SizedBox(
                     width: double.infinity,
                     height: 52,

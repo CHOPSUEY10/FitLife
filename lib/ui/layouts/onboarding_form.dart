@@ -1,6 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../features/sign_up/logic/onboarding_logic.dart';
+import '../components/global_snackbar.dart';
+
+class _DateInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final newText = newValue.text.replaceAll('/', '');
+    if (newText.length > 8) return oldValue;
+    
+    final buffer = StringBuffer();
+    for (int i = 0; i < newText.length; i++) {
+      buffer.write(newText[i]);
+      if ((i == 1 || i == 3) && i != newText.length - 1) {
+        buffer.write('/');
+      }
+    }
+    
+    final string = buffer.toString();
+    return newValue.copyWith(
+      text: string,
+      selection: TextSelection.collapsed(offset: string.length),
+    );
+  }
+}
 
 class OnboardingForm extends StatefulWidget {
   final VoidCallback onSavedAndContinue;
@@ -22,6 +49,14 @@ class _OnboardingFormState extends State<OnboardingForm> {
   
   final Color primaryGreen = const Color(0xFFBEFF5D);
   final Color whiteColor = const Color(0xFFFFFFFF);
+
+  @override
+  void dispose() {
+    _dobController.dispose();
+    _heightController.dispose();
+    _weightController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +81,7 @@ class _OnboardingFormState extends State<OnboardingForm> {
         const SizedBox(height: 30),
         _buildButton('Lanjut', isGreen: true, onPressed: () async {
           if (_dobController.text.isEmpty || _heightController.text.isEmpty || _weightController.text.isEmpty || _selectedGender == null || _selectedWaktuLuang == null) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Harap isi semua data terlebih dahulu!')));
+            GlobalSnackBar.show(context, 'Harap isi semua data terlebih dahulu!');
             return;
           }
           // Trigger the logic to save metrics to SQLite
@@ -78,22 +113,10 @@ class _OnboardingFormState extends State<OnboardingForm> {
   Widget _buildDateField() {
     return TextFormField(
       controller: _dobController,
-      readOnly: true,
-      onTap: () async {
-        DateTime? pickedDate = await showDatePicker(
-          context: context,
-          initialDate: DateTime.now(),
-          firstDate: DateTime(1900),
-          lastDate: DateTime.now(),
-        );
-        if (pickedDate != null) {
-          setState(() {
-            _dobController.text = "${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}";
-          });
-        }
-      },
+      keyboardType: TextInputType.number,
+      inputFormatters: [_DateInputFormatter()],
       decoration: InputDecoration(
-        hintText: 'Pilih Tanggal',
+        hintText: 'DD/MM/YYYY',
         hintStyle: GoogleFonts.allerta(color: Colors.black54),
         filled: true,
         fillColor: whiteColor,
@@ -101,7 +124,22 @@ class _OnboardingFormState extends State<OnboardingForm> {
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide.none,
         ),
-        suffixIcon: const Icon(Icons.calendar_today, color: Colors.blueAccent),
+        suffixIcon: IconButton(
+          icon: const Icon(Icons.calendar_today, color: Colors.blueAccent),
+          onPressed: () async {
+            DateTime? pickedDate = await showDatePicker(
+              context: context,
+              initialDate: DateTime.now(),
+              firstDate: DateTime(1900),
+              lastDate: DateTime.now(),
+            );
+            if (pickedDate != null) {
+              setState(() {
+                _dobController.text = "${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}";
+              });
+            }
+          },
+        ),
       ),
     );
   }

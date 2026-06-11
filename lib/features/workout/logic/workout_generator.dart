@@ -1,5 +1,4 @@
 // Lokasi: lib/features/workout/logic/workout_generator.dart
-import 'dart:math';
 
 /// Generator latihan dinamis yang menyesuaikan jumlah gerakan, repetisi, 
 /// dan durasi berdasarkan profil pengguna (Level Aktivitas & Waktu Luang).

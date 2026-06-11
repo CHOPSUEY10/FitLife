@@ -53,7 +53,7 @@ class _SplashScreenState extends State<SplashScreen> {
               'FitLife',
               style: GoogleFonts.coda(
                 fontSize: 24,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w400,
                 color: Colors.white,
               ),
             ),

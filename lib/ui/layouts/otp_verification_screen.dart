@@ -162,9 +162,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                         // 6-digit Input Field
                         OtpInputField(
                           length: 6,
-                          onChanged: (value) {
-                            _otpController.setOtpCode(value);
-                          },
+                          onChanged: _otpController.setOtpCode,
                         ),
                         const SizedBox(height: 32),
                         

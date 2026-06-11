@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/models/user_model.dart';
-import '../../../core/models/target_harian_model.dart';
 import '../../../core/database/local_db_helper.dart';
 import '../../../core/utils/target_calculator.dart';
 

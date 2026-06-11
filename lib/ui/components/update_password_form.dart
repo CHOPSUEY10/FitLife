@@ -6,9 +6,9 @@ class UpdatePasswordForm extends StatefulWidget {
   final ProfileAccountController controller;
 
   const UpdatePasswordForm({
-    Key? key,
+    super.key,
     required this.controller,
-  }) : super(key: key);
+  });
 
   @override
   State<UpdatePasswordForm> createState() => _UpdatePasswordFormState();

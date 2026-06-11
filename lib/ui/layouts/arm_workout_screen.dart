@@ -4,7 +4,7 @@ import '../../features/workout/logic/workout_generator.dart';
 import '../../features/dashboard/logic/settings_controller.dart';
 
 class ArmWorkoutScreen extends StatefulWidget {
-  const ArmWorkoutScreen({Key? key}) : super(key: key);
+  const ArmWorkoutScreen({super.key});
 
   @override
   State<ArmWorkoutScreen> createState() => _ArmWorkoutScreenState();
@@ -100,7 +100,14 @@ class _ArmWorkoutScreenState extends State<ArmWorkoutScreen>
   }
 
   void _onWorkoutFinished() async {
-    final totalMin = _exercises.fold<int>(0, (s, e) => s + (e['duration'] as int)) ~/ 60 + 1;
+    int totalSec = 0;
+    for (int i = 0; i < _exercises.length; i++) {
+      totalSec += _exercises[i]['duration'] as int;
+      if (i < _exercises.length - 1) {
+        totalSec += (_exercises[i]['restDuration'] as int?) ?? 15;
+      }
+    }
+    final totalMin = (totalSec / 60.0).ceil();
     final logic = WorkoutLogic();
     final cal = await logic.saveWorkoutRecord(idJenisAktifitas: 'arm_workout', durasiLatihan: totalMin);
     if (!mounted) return;
@@ -206,18 +213,20 @@ class _ArmWorkoutScreenState extends State<ArmWorkoutScreen>
         width: double.infinity, decoration: BoxDecoration(color: const Color(0xFFC6FF00), borderRadius: BorderRadius.circular(24)),
         child: Stack(children: [
           Positioned(top: 16, left: 16, child: Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(20)), child: Text('Gerakan ${_currentIndex + 1}', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)))),
-          Center(child: Padding(padding: const EdgeInsets.only(top: 20), child: Image.asset(exercise['image'], height: 200, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.fitness_center, size: 100, color: Colors.black26)))),
-          if (_workoutStarted) Positioned(bottom: 0, left: 0, right: 0, child: AnimatedBuilder(animation: _progressController, builder: (_, __) => ClipRRect(borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)), child: LinearProgressIndicator(value: _progressController.value, minHeight: 8, backgroundColor: Colors.black12, valueColor: const AlwaysStoppedAnimation<Color>(Colors.black))))),
+          Center(child: Padding(padding: const EdgeInsets.only(top: 20), child: Image.asset(exercise['image'], height: 200, fit: BoxFit.contain, errorBuilder: (_, _, _) => const Icon(Icons.fitness_center, size: 100, color: Colors.black26)))),
+          if (_workoutStarted) Positioned(bottom: 0, left: 0, right: 0, child: AnimatedBuilder(animation: _progressController, builder: (_, _) => ClipRRect(borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)), child: LinearProgressIndicator(value: _progressController.value, minHeight: 8, backgroundColor: Colors.black12, valueColor: const AlwaysStoppedAnimation<Color>(Colors.black))))),
         ]),
       ))),
       const SizedBox(height: 20),
       Expanded(flex: 3, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(exercise['name'], style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(exercise['name'], maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
             Text(exercise['reps'], style: const TextStyle(color: Color(0xFFC6FF00), fontSize: 14, fontWeight: FontWeight.w600)),
-          ]),
-          Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8), decoration: BoxDecoration(color: const Color(0xFF1A1630), borderRadius: BorderRadius.circular(12)), child: Row(children: [const Icon(Icons.timer_outlined, color: Color(0xFFC6FF00), size: 16), const SizedBox(width: 4), Text('${exercise['duration']}s', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold))])),
+          ])),
+          const SizedBox(width: 12),
+          Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8), decoration: BoxDecoration(color: const Color(0xFF1A1630), borderRadius: BorderRadius.circular(12)), child: Row(children: [const Icon(Icons.timer_outlined, color: Color(0xFFC6FF00), size: 16), const SizedBox(width: 4), AnimatedBuilder(animation: _progressController, builder: (context, child) { int remaining = _workoutStarted ? (exercise['duration'] * (1 - _progressController.value)).ceil() : exercise['duration']; return Text('${remaining}s', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)); })])),
         ]),
         const SizedBox(height: 12),
         Text(exercise['description'], style: const TextStyle(color: Colors.white60, fontSize: 13, height: 1.5)),

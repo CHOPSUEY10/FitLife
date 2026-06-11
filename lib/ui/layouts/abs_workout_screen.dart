@@ -5,7 +5,7 @@ import '../../features/dashboard/logic/settings_controller.dart';
 
 
 class AbsWorkoutScreen extends StatefulWidget {
-  const AbsWorkoutScreen({Key? key}) : super(key: key);
+  const AbsWorkoutScreen({super.key});
 
   @override
   State<AbsWorkoutScreen> createState() => _AbsWorkoutScreenState();
@@ -94,7 +94,14 @@ class _AbsWorkoutScreenState extends State<AbsWorkoutScreen>
   }
 
   void _onWorkoutFinished() async {
-    final totalMin = _exercises.fold<int>(0, (s, e) => s + (e['duration'] as int)) ~/ 60 + 1;
+    int totalSec = 0;
+    for (int i = 0; i < _exercises.length; i++) {
+      totalSec += _exercises[i]['duration'] as int;
+      if (i < _exercises.length - 1) {
+        totalSec += (_exercises[i]['restDuration'] as int?) ?? 15;
+      }
+    }
+    final totalMin = (totalSec / 60.0).ceil();
     final logic = WorkoutLogic();
     final cal = await logic.saveWorkoutRecord(idJenisAktifitas: 'abs_workout', durasiLatihan: totalMin);
     if (!mounted) return;
@@ -397,7 +404,7 @@ class _AbsWorkoutScreenState extends State<AbsWorkoutScreen>
                         exercise['image'],
                         height: 200,
                         fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(
+                        errorBuilder: (_, _, _) => const Icon(
                           Icons.fitness_center,
                           size: 100,
                           color: Colors.black26,
@@ -413,7 +420,7 @@ class _AbsWorkoutScreenState extends State<AbsWorkoutScreen>
                       right: 0,
                       child: AnimatedBuilder(
                         animation: _progressController,
-                        builder: (_, __) => ClipRRect(
+                        builder: (_, _) => ClipRRect(
                           borderRadius: const BorderRadius.only(
                             bottomLeft: Radius.circular(24),
                             bottomRight: Radius.circular(24),
@@ -448,27 +455,33 @@ class _AbsWorkoutScreenState extends State<AbsWorkoutScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          exercise['name'],
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            exercise['name'],
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        Text(
-                          exercise['reps'],
-                          style: const TextStyle(
-                            color: Color(0xFFC6FF00),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                          const SizedBox(height: 4),
+                          Text(
+                            exercise['reps'],
+                            style: const TextStyle(
+                              color: Color(0xFFC6FF00),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 12),
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 8),
@@ -481,13 +494,21 @@ class _AbsWorkoutScreenState extends State<AbsWorkoutScreen>
                           const Icon(Icons.timer_outlined,
                               color: Color(0xFFC6FF00), size: 16),
                           const SizedBox(width: 4),
-                          Text(
-                            '${exercise['duration']}s',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          AnimatedBuilder(
+                            animation: _progressController,
+                            builder: (context, child) {
+                              int remaining = _workoutStarted
+                                  ? (exercise['duration'] * (1 - _progressController.value)).ceil()
+                                  : exercise['duration'];
+                              return Text(
+                                '${remaining}s',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),

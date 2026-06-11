@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../features/dashboard/logic/settings_controller.dart';
+import '../components/global_snackbar.dart';
 
 class SettingsTargetHarianScreen extends StatefulWidget {
-  const SettingsTargetHarianScreen({Key? key}) : super(key: key);
+  const SettingsTargetHarianScreen({super.key});
 
   @override
   State<SettingsTargetHarianScreen> createState() => _SettingsTargetHarianScreenState();
@@ -62,13 +63,7 @@ class _SettingsTargetHarianScreenState extends State<SettingsTargetHarianScreen>
         durasi: durasi,
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Target Harian berhasil diperbarui'),
-            backgroundColor: limeGreen,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        GlobalSnackBar.show(context, 'Target Harian berhasil diperbarui');
         Navigator.pop(context, true);
       }
     }
@@ -93,13 +88,16 @@ class _SettingsTargetHarianScreenState extends State<SettingsTargetHarianScreen>
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: limeGreen))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+          : Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                     const Text(
                       'Tentukan target aktivitas harian Anda untuk melacak kemajuan latihan secara efektif.',
                       style: TextStyle(color: grey, fontSize: 14),
@@ -212,8 +210,14 @@ class _SettingsTargetHarianScreenState extends State<SettingsTargetHarianScreen>
                         return null;
                       },
                     ),
-                    const SizedBox(height: 40),
-                    SizedBox(
+                    const SizedBox(height: 16),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: MediaQuery.of(context).size.height * 0.10),
+                    child: SizedBox(
                       width: double.infinity,
                       height: 52,
                       child: ElevatedButton(
@@ -234,8 +238,8 @@ class _SettingsTargetHarianScreenState extends State<SettingsTargetHarianScreen>
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
     );

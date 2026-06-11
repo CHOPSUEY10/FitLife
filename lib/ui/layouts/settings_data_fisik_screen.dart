@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../features/dashboard/logic/settings_controller.dart';
+import '../components/global_snackbar.dart';
 
 class SettingsDataFisikScreen extends StatefulWidget {
-  const SettingsDataFisikScreen({Key? key}) : super(key: key);
+  const SettingsDataFisikScreen({super.key});
 
   @override
   State<SettingsDataFisikScreen> createState() => _SettingsDataFisikScreenState();
@@ -87,13 +88,7 @@ class _SettingsDataFisikScreenState extends State<SettingsDataFisikScreen> {
       final berat = double.parse(_beratController.text);
       await _controller.saveDataFisik(tinggi: tinggi, berat: berat);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Data Fisik berhasil disimpan'),
-            backgroundColor: limeGreen,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        GlobalSnackBar.show(context, 'Data Fisik berhasil disimpan');
         Navigator.pop(context, true);
       }
     }

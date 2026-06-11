@@ -5,9 +5,9 @@ class UpdateEmailForm extends StatefulWidget {
   final ProfileAccountController controller;
 
   const UpdateEmailForm({
-    Key? key,
+    super.key,
     required this.controller,
-  }) : super(key: key);
+  });
 
   @override
   State<UpdateEmailForm> createState() => _UpdateEmailFormState();
