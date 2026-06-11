@@ -18,39 +18,27 @@ class _SettingsWaktuLuangScreenState extends State<SettingsWaktuLuangScreen> {
   static const Color borderColor = Color(0xFF2A2A3E);
 
   late final SettingsController _controller;
-  String _selectedWaktu = '30 - 45 menit';
+  String _selectedWaktu = '10 - 15 menit';
   bool _isLoading = true;
 
   final List<Map<String, String>> _options = [
     {
-      'label': 'Sangat Singkat (< 15 menit)',
-      'value': '< 15 menit',
+      'label': 'Singkat (5 - 10 menit)',
+      'value': '5 - 10 menit',
       'icon': '⚡',
-      'desc': 'Cocok untuk latihan intensitas tinggi (HIIT) cepat.'
+      'desc': 'Cocok untuk latihan intensitas tinggi (HIIT) super cepat.'
     },
     {
-      'label': 'Singkat (15 - 30 menit)',
-      'value': '15 - 30 menit',
+      'label': 'Sedang (10 - 15 menit)',
+      'value': '10 - 15 menit',
       'icon': '⏱️',
-      'desc': 'Ideal untuk pemanasan cepat atau workout terfokus.'
+      'desc': 'Ideal untuk latihan rutin harian yang seimbang.'
     },
     {
-      'label': 'Sedang (30 - 45 menit)',
-      'value': '30 - 45 menit',
-      'icon': '⏳',
-      'desc': 'Waktu standar untuk latihan rutin harian yang seimbang.'
-    },
-    {
-      'label': 'Lama (45 - 60 menit)',
-      'value': '45 - 60 menit',
-      'icon': '⏰',
-      'desc': 'Cocok untuk latihan beban penuh atau kardio lengkap.'
-    },
-    {
-      'label': 'Sangat Lama (> 60 menit)',
-      'value': '> 60 menit',
+      'label': 'Maksimal (> 15 menit)',
+      'value': '> 15 menit',
       'icon': '🏆',
-      'desc': 'Sempurna untuk sesi marathon atau ketahanan otot mendalam.'
+      'desc': 'Sempurna untuk sesi ketahanan tubuh menyeluruh.'
     },
   ];
 

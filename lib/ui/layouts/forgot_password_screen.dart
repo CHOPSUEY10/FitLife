@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/service/auth_service.dart';
 import '../components/auth_text_field.dart';
 import '../components/glass_container.dart';
+import '../components/global_snackbar.dart';
 import 'login_screen.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -19,7 +20,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   void _sendResetLink() async {
     if (_emailController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Masukkan email Anda')));
+      GlobalSnackBar.show(context, 'Masukkan email Anda', backgroundColor: Colors.redAccent);
       return;
     }
 
@@ -27,12 +28,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     try {
       await _authService.sendPasswordResetEmail(_emailController.text.trim());
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Tautan reset password berhasil dikirim ke email Anda!'),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-          )
+        GlobalSnackBar.show(
+          context, 
+          'Tautan reset password berhasil dikirim ke email Anda!', 
+          backgroundColor: Colors.green,
         );
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -40,11 +39,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-        ));
+        GlobalSnackBar.showException(context, e);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -102,7 +97,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Masukkan email Anda. Kami akan mengirimkan tautan untuk mengatur ulang kata sandi Anda via Firebase.',
+                            'Masukkan email Anda. Kami akan mengirimkan tautan untuk mengatur ulang kata sandi Anda',
                             textAlign: TextAlign.center,
                             style: GoogleFonts.allerta(
                               fontSize: 14,

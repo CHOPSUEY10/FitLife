@@ -32,7 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
-        GlobalSnackBar.show(context, e.toString(), backgroundColor: Colors.redAccent);
+        GlobalSnackBar.showException(context, e);
       }
     }
   }
@@ -56,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
-        GlobalSnackBar.show(context, e.toString(), backgroundColor: Colors.redAccent);
+        GlobalSnackBar.showException(context, e);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

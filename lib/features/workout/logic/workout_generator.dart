@@ -235,10 +235,10 @@ class WorkoutGenerator {
       // Alih-alih memotong gerakan (yang bisa menyebabkan ketidakseimbangan otot),
       // kita memanipulasi waktu istirahat antar set.
       int restDuration = 15; // default rest
-      if (waktuLuang.contains('15 - 30')) {
+      if (waktuLuang.contains('5 - 10')) {
         restDuration = 5; // Sangat pendek (HIIT Mode)
         adjustedDuration = (adjustedDuration * 0.9).round(); // Sedikit lebih cepat
-      } else if (waktuLuang.contains('30 - 45')) {
+      } else if (waktuLuang.contains('10 - 15')) {
         restDuration = 15; // Sedang
       } else {
         restDuration = 30; // Pemulihan maksimal untuk pertumbuhan kekuatan (Hypertrophy Mode)

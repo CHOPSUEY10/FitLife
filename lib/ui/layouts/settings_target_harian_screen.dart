@@ -187,7 +187,7 @@ class _SettingsTargetHarianScreenState extends State<SettingsTargetHarianScreen>
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: cardColor,
-                        hintText: 'Contoh: 45',
+                        hintText: 'Contoh: 15',
                         hintStyle: const TextStyle(color: grey),
                         suffixText: 'menit',
                         suffixStyle: const TextStyle(color: limeGreen),

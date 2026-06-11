@@ -18,7 +18,7 @@ class SettingsController extends ChangeNotifier {
   String tujuan = 'Turun Berat Badan';
 
   // ── Waktu Luang ───────────────────────────────────────────
-  String waktuLuang = '30 - 45 menit';
+  String waktuLuang = '10 - 15 menit';
 
   // ── Level Aktivitas ───────────────────────────────────────
   String levelAktivitas = 'Pemula';
@@ -26,7 +26,7 @@ class SettingsController extends ChangeNotifier {
   // ── Target Harian ─────────────────────────────────────────
   int targetLangkah = 8000;
   double targetKalori = 500;
-  int targetDurasiLatihan = 45; // menit
+  int targetDurasiLatihan = 15; // menit
 
   // ── Notifikasi ────────────────────────────────────────────
   bool notifPengingat = true;
@@ -72,7 +72,7 @@ class SettingsController extends ChangeNotifier {
       tinggiBadan = user.tinggiBadan ?? 170;
       beratBadan = user.beratBadan ?? 65;
       tujuan = user.tujuan ?? 'Turun Berat Badan';
-      waktuLuang = user.waktuLuang ?? '30 - 45 menit';
+      waktuLuang = user.waktuLuang ?? '10 - 15 menit';
     }
 
     final target = await LocalDBHelper.instance.getTargetHarian();
@@ -86,7 +86,7 @@ class SettingsController extends ChangeNotifier {
     levelAktivitas = prefs.getString('levelAktivitas') ?? 'Pemula';
     targetLangkah = prefs.getInt('targetLangkah') ?? 8000;
     targetKalori = prefs.getDouble('targetKalori') ?? 500;
-    targetDurasiLatihan = prefs.getInt('targetDurasiLatihan') ?? 45;
+    targetDurasiLatihan = prefs.getInt('targetDurasiLatihan') ?? 15;
     notifPengingat = prefs.getBool('notifPengingat') ?? true;
     notifPencapaian = prefs.getBool('notifPencapaian') ?? true;
     notifTips = prefs.getBool('notifTips') ?? false;
@@ -224,7 +224,7 @@ class SettingsController extends ChangeNotifier {
     final target = await LocalDBHelper.instance.getTargetHarian();
     targetLangkah = target.targetLangkah ?? 8000;
     targetKalori = target.targetKalori ?? 500.0;
-    targetDurasiLatihan = target.targetDurasiLatihan ?? 45;
+    targetDurasiLatihan = target.targetDurasiLatihan ?? 15;
   }
 
   // ── Computed helpers ──────────────────────────────────────

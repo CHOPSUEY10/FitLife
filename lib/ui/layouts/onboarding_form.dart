@@ -197,7 +197,7 @@ class _OnboardingFormState extends State<OnboardingForm> {
           _selectedWaktuLuang = newValue;
         });
       },
-      items: <String>['15 - 30 menit', '30 - 45 menit', '> 45 menit']
+      items: <String>['5 - 10 menit', '10 - 15 menit', '> 15 menit']
           .map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
           value: value,

@@ -84,7 +84,7 @@ class LocalDBHelper {
       'id': 'local_target',
       'targetLangkah': 8000,
       'targetKalori': 500.0,
-      'targetDurasiLatihan': 45,
+      'targetDurasiLatihan': 15,
     }, conflictAlgorithm: ConflictAlgorithm.ignore);
 
     await _seedWorkoutData(db);
@@ -182,7 +182,7 @@ class LocalDBHelper {
         'id': 'local_target',
         'targetLangkah': 8000,
         'targetKalori': 500.0,
-        'targetDurasiLatihan': 45,
+        'targetDurasiLatihan': 15,
       }, conflictAlgorithm: ConflictAlgorithm.ignore);
     }
     if (oldVersion < 6) {
@@ -353,7 +353,7 @@ class LocalDBHelper {
         id: targetId,
         targetLangkah: 8000,
         targetKalori: 500.0,
-        targetDurasiLatihan: 45,
+        targetDurasiLatihan: 15,
       );
     }
   }

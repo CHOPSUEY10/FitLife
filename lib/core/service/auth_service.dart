@@ -29,9 +29,8 @@ class AuthService {
 
       // Sign in to Firebase with the Google credential
       return await _auth.signInWithCredential(credential);
-    } on FirebaseAuthException catch (e) {
-      // Handle Firebase specific errors
-      throw Exception('Firebase auth error: ${e.message}');
+    } on FirebaseAuthException {
+      rethrow;
     } catch (e) {
       // Handle generic errors
       throw Exception('Failed to sign in with Google: $e');
@@ -59,8 +58,8 @@ class AuthService {
       }
       
       return credential;
-    } on FirebaseAuthException catch (e) {
-      throw Exception('Registration error: ${e.message}');
+    } on FirebaseAuthException {
+      rethrow;
     } catch (e) {
       throw Exception('Failed to register: $e');
     }
@@ -73,8 +72,8 @@ class AuthService {
         email: email,
         password: password,
       );
-    } on FirebaseAuthException catch (e) {
-      throw Exception('Login error: ${e.message}');
+    } on FirebaseAuthException {
+      rethrow;
     } catch (e) {
       throw Exception('Failed to login: $e');
     }
@@ -95,8 +94,8 @@ class AuthService {
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
-    } on FirebaseAuthException catch (e) {
-      throw Exception('Reset password error: ${e.message}');
+    } on FirebaseAuthException {
+      rethrow;
     } catch (e) {
       throw Exception('Failed to send reset email: $e');
     }
@@ -116,7 +115,7 @@ class AuthService {
         throw RequiresRecentLoginFailure();
       }
       if (e is FirebaseAuthException) {
-        throw AuthFailure(e.message ?? 'Gagal memperbarui email.');
+        rethrow;
       }
       throw AuthFailure('Terjadi kesalahan saat memperbarui email: $e');
     }
@@ -136,7 +135,7 @@ class AuthService {
         throw RequiresRecentLoginFailure();
       }
       if (e is FirebaseAuthException) {
-        throw AuthFailure(e.message ?? 'Gagal memperbarui kata sandi.');
+        rethrow;
       }
       throw AuthFailure('Terjadi kesalahan saat memperbarui kata sandi: $e');
     }
@@ -185,8 +184,8 @@ class AuthService {
         );
         await user.reauthenticateWithCredential(credential);
       }
-    } on FirebaseAuthException catch (e) {
-      throw AuthFailure(e.message ?? 'Verifikasi ulang gagal.');
+    } on FirebaseAuthException {
+      rethrow;
     } catch (e) {
       throw AuthFailure('Terjadi kesalahan saat verifikasi ulang: $e');
     }

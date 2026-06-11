@@ -29,7 +29,7 @@ class TargetHarianModel {
       id: map['id'] ?? 'local_target',
       targetLangkah: map['targetLangkah'] ?? 8000,
       targetKalori: (map['targetKalori'] as num?)?.toDouble() ?? 500.0,
-      targetDurasiLatihan: map['targetDurasiLatihan'] ?? 45,
+      targetDurasiLatihan: map['targetDurasiLatihan'] ?? 15,
     );
   }
 }

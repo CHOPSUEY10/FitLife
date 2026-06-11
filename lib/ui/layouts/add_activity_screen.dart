@@ -286,7 +286,7 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
                             ),
                             const SizedBox(height: 12),
                             SizedBox(
-                              height: 105,
+                              height: 80,
                               child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
                                 itemCount: _recommendations.length,

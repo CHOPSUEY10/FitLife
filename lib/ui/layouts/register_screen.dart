@@ -32,7 +32,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
     } catch (e) {
       if (mounted) {
-        GlobalSnackBar.show(context, e.toString(), backgroundColor: Colors.redAccent);
+        GlobalSnackBar.showException(context, e);
       }
     }
   }
@@ -62,7 +62,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
     } catch (e) {
       if (mounted) {
-        GlobalSnackBar.show(context, e.toString(), backgroundColor: Colors.redAccent);
+        GlobalSnackBar.showException(context, e);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

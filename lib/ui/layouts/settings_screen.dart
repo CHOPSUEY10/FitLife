@@ -232,9 +232,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.warning_amber_rounded, color: grey.withValues(alpha: 0.6), size: 14),
+          Image.asset('assets/icon/fitlife.png', width: 14, height: 14, color: grey.withValues(alpha: 0.6)),
           const SizedBox(width: 6),
-          Text('Fitlifeo 1.0-release', style: TextStyle(color: grey.withValues(alpha: 0.6), fontSize: 12)),
+          Text('Fitlife 1.0-release', style: TextStyle(color: grey.withValues(alpha: 0.6), fontSize: 12)),
         ],
       ),
     );

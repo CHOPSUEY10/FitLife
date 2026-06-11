@@ -16,7 +16,7 @@ class TargetCalculator {
       
       final prefs = await SharedPreferences.getInstance();
       final level = prefs.getString('levelAktivitas') ?? 'Pemula';
-      final waktuLuang = user.waktuLuang ?? '30 - 45 menit';
+      final waktuLuang = user.waktuLuang ?? '10 - 15 menit';
       
       // 1. Calculate Age
       final parts = user.tanggalLahir!.split('/');
@@ -48,10 +48,10 @@ class TargetCalculator {
       double targetKalori = tdee * 0.15;
       
       // 5. Target Durasi
-      int targetDurasi = 45;
-      if (waktuLuang.contains('15 - 30')) targetDurasi = 30;
-      if (waktuLuang.contains('30 - 45')) targetDurasi = 45;
-      if (waktuLuang.contains('> 45')) targetDurasi = 60;
+      int targetDurasi = 15;
+      if (waktuLuang.contains('5 - 10')) targetDurasi = 10;
+      if (waktuLuang.contains('10 - 15')) targetDurasi = 15;
+      if (waktuLuang.contains('> 15')) targetDurasi = 20;
       
       // 6. Target Langkah
       int targetLangkah = 5000;
