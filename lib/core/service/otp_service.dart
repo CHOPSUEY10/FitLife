@@ -21,10 +21,13 @@ class OtpService {
       const secureStorage = FlutterSecureStorage();
       await secureStorage.write(key: 'email_otp_code_$email', value: otpCode);
 
-      // Check if SMTP credentials are default placeholder
-      if (OtpConfig.smtpUsername == 'YOUR_EMAIL@gmail.com' ||
+      // Check if SMTP credentials are not configured
+      if (OtpConfig.smtpUsername.isEmpty ||
+          OtpConfig.smtpPassword.isEmpty ||
+          OtpConfig.smtpUsername == 'YOUR_EMAIL@gmail.com' ||
           OtpConfig.smtpPassword == 'YOUR_APP_PASSWORD') {
         // Fallback to simulated delay if credentials are not configured yet
+        print('=== SIMULATED OTP CODE FOR $email: $otpCode ===');
         await Future.delayed(const Duration(milliseconds: 1000));
         onCodeSent();
         return;
