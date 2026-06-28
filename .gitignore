@@ -46,3 +46,5 @@ app.*.map.json
 
 # authentication api keys
 /android/app/google-services.json
+
+.agents
