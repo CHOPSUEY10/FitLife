@@ -1,6 +1,4 @@
-#FitLife
 
-A new Flutter project.
 
 
 # Instalasi Flutter & Manual Android SDK (Tanpa Android Studio)
@@ -98,6 +96,3 @@ Agar aplikasi bisa langsung berjalan di HP tanpa emulator:
 *   **Android SDK Not Found:** Jalankan ulang `flutter config --android-sdk C:\Android\sdk`.
 *   **Build Failed (Java Version):** Pastikan menggunakan JDK 17. Jika sudah terlanjur instal versi lain, hapus sisa build dengan `flutter clean` sebelum mencoba lagi.
 
----
-*Dibuat untuk mempermudah setup Flutter environment bagi pengembang yang mengutamakan efisiensi penyimpanan.*
-```
